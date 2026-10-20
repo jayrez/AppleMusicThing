@@ -32,6 +32,16 @@ const App: React.FC = () => {
   const duration = track.durationMs || 0
   const isPlaying = playingOverride ?? !!track.isPlaying
 
+  // Precise position for per-frame drawing (lyrics fill), without re-rendering.
+  const clock = useRef({ base: 0, at: 0, playing: false, scrub: null as number | null, dur: 0 })
+  clock.current = { base: track.positionMs || 0, at: np.receivedAt, playing: !!track.isPlaying, scrub: scrubMs, dur: duration }
+  const getPosition = useCallback(() => {
+    const c = clock.current
+    if (c.scrub != null) return c.scrub
+    const p = c.playing ? c.base + (Date.now() - c.at) : c.base
+    return c.dur ? Math.min(p, c.dur) : p
+  }, [])
+
   const hideTimer = useRef<number>()
   const volTimer = useRef<number>()
   const localVol = useRef<{ v: number; at: number }>({ v: 1, at: 0 })
@@ -247,7 +257,7 @@ const App: React.FC = () => {
             </div>
 
             <div className="pane lyrics-pane">
-              <Lyrics lyrics={np.lyrics} position={position} duration={duration} active={showLyrics} />
+              <Lyrics lyrics={np.lyrics} position={position} getPosition={getPosition} playing={!!track.isPlaying} duration={duration} active={showLyrics} />
               <div className="mini">
                 <p className="mini-title">{track.title}</p>
                 <p className="mini-artist">{track.artist}</p>

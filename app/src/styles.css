@@ -201,14 +201,27 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   line-height: 1.22;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: rgba(251, 248, 243, 0.3);
+  color: rgba(251, 248, 243, 0.32);
   margin-bottom: 14px;
-  transition: color 300ms ease;
+  transition: opacity 450ms ease;
 }
-.line.past { color: rgba(251, 248, 243, 0.2); }
-.line.now { color: #fbf8f3; }
-.line.gap { font-size: 18px; color: rgba(251, 248, 243, 0.25); }
-.line.now.gap { color: var(--accent); }
+
+/* Each word is painted with a white-to-dim gradient clipped to the text.
+   Sliding the gradient fills the word left to right as it's sung. */
+.line .w {
+  color: transparent;
+  background-image: linear-gradient(90deg, #fbf8f3 33.4%, rgba(251, 248, 243, 0.32) 40%);
+  background-size: 300% 100%;
+  background-repeat: no-repeat;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-box-decoration-break: clone;
+}
+.line.next .w { background-position: 100% 0 !important; }
+.line.past .w { background-position: 0 0 !important; }
+.line.past { opacity: 0.42; }
+.line.gap { font-size: 18px; }
 
 .is-plain .line { font-weight: 500; font-size: 21px; color: rgba(251, 248, 243, 0.75); margin-bottom: 6px; }
 

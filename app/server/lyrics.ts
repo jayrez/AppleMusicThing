@@ -1,4 +1,4 @@
-import type { LyricLine, LyricsPayload, TrackState } from '../shared/types'
+import type { LyricLine, LyricWord, LyricsPayload, TrackState } from '../shared/types'
 
 // Lyrics come from LRCLIB (https://lrclib.net), a free open lyrics database
 // with time-synced lyrics. Requests are made from the computer, not the Car Thing.
@@ -19,6 +19,21 @@ type LrclibRecord = {
   syncedLyrics?: string | null
 }
 
+const WORD_TAG = /<(\d{1,2}):(\d{1,2}(?:\.\d{1,3})?)>/g
+const toMs = (m: string, sec: string) => Math.round((parseInt(m, 10) * 60 + parseFloat(sec)) * 1000)
+
+// Enhanced LRC carries per-word times: "<00:12.40>Hold <00:12.90>the <00:13.10>line"
+const parseWords = (body: string): LyricWord[] | undefined => {
+  if (!/<\d{1,2}:\d/.test(body)) return undefined
+  const words: LyricWord[] = []
+  const parts = body.split(WORD_TAG) // [pre, m, s, text, m, s, text, ...]
+  for (let i = 1; i + 2 < parts.length + 1; i += 3) {
+    const text = (parts[i + 2] || '').trim()
+    if (text) words.push({ t: toMs(parts[i], parts[i + 1]), text })
+  }
+  return words.length ? words : undefined
+}
+
 export const parseLrc = (lrc: string): LyricLine[] => {
   const lines: LyricLine[] = []
   const stamp = /\[(\d{1,2}):(\d{1,2}(?:\.\d{1,3})?)\]/g
@@ -26,10 +41,12 @@ export const parseLrc = (lrc: string): LyricLine[] => {
     const stamps: number[] = []
     let m: RegExpExecArray | null
     stamp.lastIndex = 0
-    while ((m = stamp.exec(raw))) stamps.push((parseInt(m[1], 10) * 60 + parseFloat(m[2])) * 1000)
+    while ((m = stamp.exec(raw))) stamps.push(toMs(m[1], m[2]))
     if (!stamps.length) continue
-    const text = raw.replace(stamp, '').trim()
-    for (const t of stamps) lines.push({ t: Math.round(t), text })
+    const body = raw.replace(stamp, '')
+    const words = parseWords(body)
+    const text = body.replace(WORD_TAG, '').replace(/\s+/g, ' ').trim()
+    for (const t of stamps) lines.push(words && stamps.length === 1 ? { t, text, words } : { t, text })
   }
   lines.sort((a, b) => a.t - b.t)
   // Collapse runs of empty lines into a single break marker.

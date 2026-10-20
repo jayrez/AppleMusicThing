@@ -14,7 +14,9 @@ export type TrackState = {
   source?: 'musickit' | 'mediasession'
 }
 
-export type LyricLine = { t: number; text: string } // t in ms
+export type LyricWord = { t: number; text: string } // t in ms
+/** t in ms. `words` is present only when the source had per-word timing (enhanced LRC). */
+export type LyricLine = { t: number; text: string; words?: LyricWord[] }
 
 export type LyricsPayload = {
   trackId: string
