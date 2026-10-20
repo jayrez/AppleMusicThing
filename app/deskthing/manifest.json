@@ -1,0 +1,22 @@
+{
+  "id": "applemusic",
+  "requires": [],
+  "label": "Apple Music",
+  "version": "1.0.0",
+  "description": "Album-art-first now playing screen for Apple Music web, with synced lyrics. Needs the Apple Music DeskThing Bridge extension in Edge.",
+  "author": "Julio",
+  "platforms": [
+    "windows",
+    "mac",
+    "linux"
+  ],
+  "homepage": "https://github.com/jayrez/AppleMusicThing",
+  "repository": "https://github.com/jayrez/AppleMusicThing",
+  "template": "base",
+  "tags": [],
+  "requiredVersions": {
+    "server": ">=0.11.9",
+    "client": ">=0.11.2"
+  },
+  "updateUrl": "https://github.com/jayrez/AppleMusicThing"
+}
