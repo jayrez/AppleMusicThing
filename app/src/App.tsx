@@ -223,11 +223,11 @@ const App: React.FC = () => {
         {art.src && ready ? <img src={art.src} alt="" draggable={false} /> : <div className="art-empty"><IconNote /></div>}
         {ready && (
           <div className="controls" aria-hidden={!controls}>
-            <button data-ctl onClick={() => { send('prev'); pokeControls() }} aria-label="Previous"><IconPrev /></button>
-            <button data-ctl className="play" onClick={() => { playPause(); pokeControls() }} aria-label={isPlaying ? 'Pause' : 'Play'}>
+            <button data-ctl tabIndex={-1} onClick={() => { send('prev'); pokeControls() }} aria-label="Previous"><IconPrev /></button>
+            <button data-ctl tabIndex={-1} className="play" onClick={() => { playPause(); pokeControls() }} aria-label={isPlaying ? 'Pause' : 'Play'}>
               {isPlaying ? <IconPause /> : <IconPlay />}
             </button>
-            <button data-ctl onClick={() => { send('next'); pokeControls() }} aria-label="Next"><IconNext /></button>
+            <button data-ctl tabIndex={-1} onClick={() => { send('next'); pokeControls() }} aria-label="Next"><IconNext /></button>
           </div>
         )}
         {ready && !isPlaying && !controls && <div className="paused-badge"><IconPause /></div>}
