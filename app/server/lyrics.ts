@@ -55,9 +55,19 @@ const toPayload = (trackId: string, r: LrclibRecord | null): LyricsPayload => {
   return { trackId, status: 'none' }
 }
 
-const getJson = async <T>(url: string): Promise<T | null> => {
+// The computer's own network path can fail on managed networks (DeskThing's
+// runtime ignores the Windows proxy). The extension can fetch through Edge
+// instead, which does use the proxy.
+export type FallbackFetch = (url: string) => Promise<{ status: number; body: string }>
+let fallbackFetch: FallbackFetch | null = null
+let directFailedAt = 0
+const DIRECT_RETRY_MS = 10 * 60 * 1000
+
+export const setFallbackFetch = (fn: FallbackFetch | null) => { fallbackFetch = fn }
+
+const directJson = async <T>(url: string): Promise<T | null> => {
   const ctrl = new AbortController()
-  const timer = setTimeout(() => ctrl.abort(), 8000)
+  const timer = setTimeout(() => ctrl.abort(), 6000)
   try {
     const res = await fetch(url, { headers: HEADERS, signal: ctrl.signal })
     if (res.status === 404) return null
@@ -66,6 +76,29 @@ const getJson = async <T>(url: string): Promise<T | null> => {
   } finally {
     clearTimeout(timer)
   }
+}
+
+const viaBrowserJson = async <T>(url: string): Promise<T | null> => {
+  const { status, body } = await fallbackFetch!(url)
+  if (status === 404) return null
+  if (status < 200 || status >= 300) throw new Error(`LRCLIB via browser ${status}`)
+  return JSON.parse(body) as T
+}
+
+const getJson = async <T>(url: string): Promise<T | null> => {
+  const skipDirect = fallbackFetch && Date.now() - directFailedAt < DIRECT_RETRY_MS
+  if (!skipDirect) {
+    try {
+      return await directJson<T>(url)
+    } catch (err) {
+      // A real HTTP error from LRCLIB means the network is fine; don't fall back.
+      if (err instanceof Error && err.message.startsWith('LRCLIB ')) throw err
+      directFailedAt = Date.now()
+      if (!fallbackFetch) throw err
+      console.warn('[applemusic] direct lyrics request failed, using the browser instead')
+    }
+  }
+  return viaBrowserJson<T>(url)
 }
 
 const exactLookup = async (t: TrackState, title: string, artist: string) => {

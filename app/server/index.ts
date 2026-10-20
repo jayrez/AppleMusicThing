@@ -1,7 +1,7 @@
 import { DeskThing } from '@deskthing/server'
 import { Action, AppSettings, DESKTHING_EVENTS, SETTING_TYPES } from '@deskthing/types'
 import { ExtensionBridge } from './bridge'
-import { fetchLyrics } from './lyrics'
+import { fetchLyrics, setFallbackFetch } from './lyrics'
 import { ACTION_IDS, Command, LyricsPayload, SETTING_IDS, ToClient, ToServer, TrackState } from '../shared/types'
 
 const DeskThingServer = DeskThing as unknown as typeof DeskThing & {
@@ -31,6 +31,8 @@ const bridge = new ExtensionBridge({
     if (connected) bridge.requestState()
   }
 })
+
+setFallbackFetch((url) => bridge.fetchViaBrowser(url))
 
 const loadLyrics = async (track: TrackState) => {
   const trackId = track.id || ''

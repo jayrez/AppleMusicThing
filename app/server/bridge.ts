@@ -20,6 +20,8 @@ export class ExtensionBridge {
   private wss: WebSocketServer | null = null
   private socket: WebSocket | null = null
   private port = 0
+  private nextFetchId = 1
+  private pendingFetches = new Map<number, { resolve: (r: { status: number; body: string }) => void; reject: (e: Error) => void; timer: NodeJS.Timeout }>()
 
   constructor(private handlers: Handlers) {}
 
@@ -54,9 +56,10 @@ export class ExtensionBridge {
       this.handlers.onStatus(true)
 
       ws.on('message', (raw) => {
-        let msg: { type?: string; state?: TrackState }
+        let msg: { type?: string; state?: TrackState; id?: number; status?: number; body?: string; error?: string }
         try { msg = JSON.parse(String(raw)) } catch { return }
         if (msg.type === 'state' && msg.state) this.handlers.onState(msg.state)
+        else if (msg.type === 'fetchResult' && typeof msg.id === 'number') this.settleFetch(msg)
       })
 
       ws.on('close', () => {
@@ -73,6 +76,29 @@ export class ExtensionBridge {
     if (!this.connected) return false
     this.socket!.send(JSON.stringify({ type: 'cmd', cmd, value }))
     return true
+  }
+
+  /** Ask the extension to GET a URL through Edge (and the Windows proxy). */
+  fetchViaBrowser(url: string): Promise<{ status: number; body: string }> {
+    if (!this.connected) return Promise.reject(new Error('extension not connected'))
+    const id = this.nextFetchId++
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pendingFetches.delete(id)
+        reject(new Error('browser fetch timed out'))
+      }, 10000)
+      this.pendingFetches.set(id, { resolve, reject, timer })
+      this.socket!.send(JSON.stringify({ type: 'fetch', id, url }))
+    })
+  }
+
+  private settleFetch(msg: { id?: number; status?: number; body?: string; error?: string }) {
+    const p = this.pendingFetches.get(msg.id!)
+    if (!p) return
+    this.pendingFetches.delete(msg.id!)
+    clearTimeout(p.timer)
+    if (msg.error) p.reject(new Error(`browser fetch failed: ${msg.error}`))
+    else p.resolve({ status: msg.status || 0, body: msg.body || '' })
   }
 
   requestState() {

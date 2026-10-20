@@ -111,6 +111,8 @@ function connect() {
     if (msg.type === 'cmd') {
       const t = activeTabId != null && tabs.get(activeTabId);
       if (t) t.port.postMessage({ type: 'cmd', cmd: msg.cmd, value: msg.value });
+    } else if (msg.type === 'fetch') {
+      browserFetch(msg.id, msg.url);
     } else if (msg.type === 'getState') {
       const t = activeTabId != null && tabs.get(activeTabId);
       sendWs({ type: 'state', state: (t && t.state) || { hasTrack: false } });
@@ -125,6 +127,19 @@ function connect() {
   };
 
   socket.onerror = () => { /* onclose follows */ };
+}
+
+// Lyrics lookups made through Edge, so they use the Windows proxy settings.
+// Only LRCLIB is allowed, so the local app can't use this as a general proxy.
+async function browserFetch(id, url) {
+  try {
+    const u = new URL(url);
+    if (u.protocol !== 'https:' || u.hostname !== 'lrclib.net') throw new Error('host not allowed');
+    const res = await fetch(u.href, { headers: { 'Lrclib-Client': 'DeskThing-AppleMusic/1.1.0' } });
+    sendWs({ type: 'fetchResult', id, status: res.status, body: await res.text() });
+  } catch (err) {
+    sendWs({ type: 'fetchResult', id, error: String((err && err.message) || err) });
+  }
 }
 
 function scheduleRetry() {
