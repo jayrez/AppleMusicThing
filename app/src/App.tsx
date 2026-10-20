@@ -61,6 +61,13 @@ const App: React.FC = () => {
     send('playPause')
   }, [send, track.isPlaying])
 
+  // Pressing a control must never move focus to it (focus is what draws the ring).
+  const noFocus = {
+    tabIndex: -1,
+    onMouseDown: (e: React.MouseEvent) => e.preventDefault(),
+    onFocus: (e: React.FocusEvent<HTMLButtonElement>) => e.currentTarget.blur()
+  }
+
   const pokeControls = useCallback(() => {
     setControls(true)
     window.clearTimeout(hideTimer.current)
@@ -223,11 +230,11 @@ const App: React.FC = () => {
         {art.src && ready ? <img src={art.src} alt="" draggable={false} /> : <div className="art-empty"><IconNote /></div>}
         {ready && (
           <div className="controls" aria-hidden={!controls}>
-            <button data-ctl tabIndex={-1} onClick={() => { send('prev'); pokeControls() }} aria-label="Previous"><IconPrev /></button>
-            <button data-ctl tabIndex={-1} className="play" onClick={() => { playPause(); pokeControls() }} aria-label={isPlaying ? 'Pause' : 'Play'}>
+            <button data-ctl {...noFocus} onClick={() => { send('prev'); pokeControls() }} aria-label="Previous"><IconPrev /></button>
+            <button data-ctl {...noFocus} className="play" onClick={() => { playPause(); pokeControls() }} aria-label={isPlaying ? 'Pause' : 'Play'}>
               {isPlaying ? <IconPause /> : <IconPlay />}
             </button>
-            <button data-ctl tabIndex={-1} onClick={() => { send('next'); pokeControls() }} aria-label="Next"><IconNext /></button>
+            <button data-ctl {...noFocus} onClick={() => { send('next'); pokeControls() }} aria-label="Next"><IconNext /></button>
           </div>
         )}
         {ready && !isPlaying && !controls && <div className="paused-badge"><IconPause /></div>}

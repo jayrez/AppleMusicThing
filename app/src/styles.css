@@ -14,8 +14,10 @@ body {
 }
 
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
-/* Touch-only screen: no focus ring after a tap (the Car Thing's Chromium has no :focus-visible). */
-button:focus { outline: none; }
+/* Touch-only screen: never draw focus rings or tap highlights
+   (the Car Thing's older Chromium has no :focus-visible). */
+*, *:focus, *:active { outline: 0 !important; -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important; }
+button { -webkit-appearance: none; appearance: none; box-shadow: none; }
 button::-moz-focus-inner { border: 0; }
 
 .screen {
