@@ -107,6 +107,17 @@ No accounts, servers or analytics: song info goes only to the DeskThing app on y
 
 Store-ready listing text, permission justifications, data-use answers and images for the Chrome Web Store and Microsoft Edge Add-ons are in [`store/LISTING.md`](store/LISTING.md). Build the upload zip with `store/package.sh`.
 
+## Releasing
+
+Releases are built by GitHub Actions ([`.github/workflows/release.yml`](.github/workflows/release.yml)). Bump `version` in `app/deskthing/manifest.json` and `app/package.json` (and in `extension/manifest.json` if the extension changed), commit, then push a matching tag:
+
+```
+git tag v1.7.2
+git push origin v1.7.2
+```
+
+The workflow builds the DeskThing app and the extension and publishes a release with `applemusic-v<version>.zip`, `now-playing-bridge-v<version>.zip` and `latest.json`, which DeskThing uses to find updates.
+
 ## Building from source
 
 ```

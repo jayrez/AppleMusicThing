@@ -1,0 +1,84 @@
+# Builds the DeskThing app and the browser extension, then publishes a GitHub release.
+#
+# To release:   git tag v1.7.2 && git push origin v1.7.2
+# The tag must match "version" in app/deskthing/manifest.json.
+#
+# The release gets:
+#   applemusic-v<version>.zip         the DeskThing app (install in DeskThing → Apps)
+#   latest.json                       release metadata DeskThing uses to find updates
+#   now-playing-bridge-v<version>.zip the browser extension (store upload / load unpacked)
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag to (re)build and release, e.g. v1.7.2'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Check the tag matches the app version
+        id: version
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          APP=$(jq -r .version app/deskthing/manifest.json)
+          EXT=$(jq -r .version extension/manifest.json)
+          if [ "$TAG" != "v$APP" ]; then
+            echo "::error::Tag $TAG doesn't match app/deskthing/manifest.json version $APP. Bump the version or use tag v$APP."
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "app=$APP" >> "$GITHUB_OUTPUT"
+          echo "ext=$EXT" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Build the DeskThing app
+        working-directory: app
+        run: |
+          npm ci --no-audit --no-fund
+          npx @deskthing/cli package
+          test -f "dist/applemusic-v${{ steps.version.outputs.app }}.zip"
+          test -f dist/latest.json
+
+      - name: Build the browser extension
+        run: |
+          store/package.sh
+          test -f "store/dist/now-playing-bridge-v${{ steps.version.outputs.ext }}.zip"
+
+      - name: Write release notes
+        run: |
+          sed -e "s/{{APP}}/${{ steps.version.outputs.app }}/g" \
+              -e "s/{{EXT}}/${{ steps.version.outputs.ext }}/g" \
+              .github/release-notes.md > "$RUNNER_TEMP/notes.md"
+
+      - name: Publish the release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          body_path: ${{ runner.temp }}/notes.md
+          generate_release_notes: true
+          make_latest: true
+          fail_on_unmatched_files: true
+          files: |
+            app/dist/applemusic-v${{ steps.version.outputs.app }}.zip
+            app/dist/latest.json
+            store/dist/now-playing-bridge-v${{ steps.version.outputs.ext }}.zip
