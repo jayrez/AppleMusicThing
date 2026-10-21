@@ -7,7 +7,7 @@ Two pieces:
 - **Apple Music DeskThing Bridge** (`extension/`) — a small browser extension for Edge or Chrome. It reads what's playing in your music.apple.com tab and carries out play/pause, skip, seek and volume.
 - **Apple Music DeskThing app** (`app/`) — runs inside DeskThing. It talks to the extension on `127.0.0.1:8899`, gets lyrics, and draws the screen on the Car Thing.
 
-**Lyrics** come from Apple Music itself when available (fetched by the extension, the same way Apple's lyrics button does). Many newer songs have word-by-word timing there, so the fill matches Apple Music exactly; older songs have line timing. When Apple has no lyrics, the app falls back to [LRCLIB](https://lrclib.net) and estimates word timing from syllables.
+**Lyrics** come from Apple Music itself when available (fetched by the extension, the same way Apple's lyrics button does). Many newer songs have word-by-word timing there, so the fill matches Apple Music exactly; older songs have line timing. When Apple has no lyrics, the app falls back to [LRCLIB](https://lrclib.net) and estimates word timing from syllables. The next song's lyrics and album art are loaded while the current one plays, so they appear the moment it starts.
 
 ## Install
 
@@ -17,7 +17,7 @@ Two pieces:
 3. Reload any open music.apple.com tab.
 
 ### 2. The DeskThing app
-1. Get `applemusic-v1.4.2.zip` from the Releases page (or build it, see below). In DeskThing, open **Apps**, choose to add/upload an app from a file, and pick that zip.
+1. Get `applemusic-v1.5.0.zip` from the Releases page (or build it, see below). In DeskThing, open **Apps**, choose to add/upload an app from a file, and pick that zip.
 2. Open the app on the Car Thing.
 3. Click the extension's toolbar icon (in Chrome, pin it from the puzzle-piece menu first). It should say **Connected** and show the current song.
 
@@ -71,7 +71,7 @@ The app also registers mappable actions (**Apple Music: Play / Pause, Next, Prev
 ```
 cd app
 npm install
-npm run build        # → app/dist/applemusic-v1.4.2.zip
+npm run build        # → app/dist/applemusic-v1.5.0.zip
 npx vite             # preview the screen in a browser with demo data
 ```
 

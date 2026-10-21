@@ -26,6 +26,7 @@ const bridge = new ExtensionBridge({
     sendToClient({ type: 'am', request: 'state', payload: state })
     if (trackChanged) loadLyrics(s)
     if (!s.hasTrack) lyrics = null
+    if (s.next && s.next.id) prefetchNext(s.next)
   },
   onStatus: (connected) => {
     sendToClient({ type: 'am', request: 'bridge', payload: { connected } })
@@ -59,6 +60,19 @@ const useAppleLyrics = (msg: AppleLyricsMessage) => {
 }
 
 setFallbackFetch((url) => bridge.fetchViaBrowser(url))
+
+// Look up the next song's lyrics early (LRCLIB caches the answer), unless
+// Apple's lyrics for it have already arrived from the extension.
+const prefetched = new Set<string>()
+const prefetchNext = (next: NonNullable<TrackState['next']>) => {
+  if (prefetched.has(next.id)) return
+  prefetched.add(next.id)
+  if (prefetched.size > 50) prefetched.delete(prefetched.values().next().value as string)
+  setTimeout(() => {
+    if (appleCache.get(next.id)?.status === 'synced') return
+    fetchLyrics({ hasTrack: true, ...next }).catch(() => { /* retried when it plays */ })
+  }, 5000)
+}
 
 const loadLyrics = async (track: TrackState) => {
   const trackId = track.id || ''

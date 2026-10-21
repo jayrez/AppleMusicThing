@@ -4,8 +4,7 @@ import { fillAt, wordSpans, WordSpan } from './timing'
 
 type Props = {
   lyrics: LyricsPayload | null
-  position: number // coarse (4x/second); decides which line is current
-  getPosition: () => number // smooth, read every frame for the word fill
+  getPosition: () => number // smooth song position, read on our own schedule
   playing: boolean
   duration: number
   active: boolean
@@ -13,6 +12,8 @@ type Props = {
 
 const LEAD_MS = 150 // move to a line just before it's sung
 const ANCHOR = 0.36 // current line sits about a third of the way down
+const BEFORE = 5 // lines kept fully drawn above the current one
+const AFTER = 10 // ...and below it; the rest stay in place but aren't painted
 
 const statusText: Record<string, string> = {
   loading: 'Finding lyrics…',
@@ -21,12 +22,26 @@ const statusText: Record<string, string> = {
   error: "Couldn't reach the lyrics service"
 }
 
-// The list only re-renders when the current line changes, not on every clock
-// tick; the Car Thing's CPU can't afford to diff hundreds of words 4x a second.
+const lineAt = (lines: LyricLine[], pos: number) => {
+  let idx = -1
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].t <= pos + LEAD_MS) idx = i
+    else break
+  }
+  return idx
+}
+
+// Re-renders only when the current line changes. Lines far from it keep their
+// place in the layout (so scrolling math stays exact) but are invisible and
+// carry no per-word styling, which keeps paint and memory low on long songs.
 const SyncedList = memo(function SyncedList({ lines, spans, current }: { lines: LyricLine[]; spans: WordSpan[][]; current: number }) {
+  const from = current - BEFORE, to = current + AFTER
   return (
     <>
       {lines.map((l, i) => {
+        if (i < from || i > to) {
+          return <p key={i} className={`line far${l.text ? '' : ' gap'}`}>{l.text || '♪'}</p>
+        }
         const state = i === current ? 'now' : i < current ? 'past' : 'next'
         return (
           <p key={i} className={`line ${state}${l.text ? '' : ' gap'}`}>
@@ -47,7 +62,7 @@ const PlainList = memo(function PlainList({ lines }: { lines: string[] }) {
   return <>{lines.map((l, i) => <p key={i} className={`line${l ? '' : ' gap'}`}>{l || ' '}</p>)}</>
 })
 
-export const Lyrics: React.FC<Props> = ({ lyrics, position, getPosition, playing, duration, active }) => {
+export const Lyrics: React.FC<Props> = ({ lyrics, getPosition, playing, duration, active }) => {
   const viewport = useRef<HTMLDivElement>(null)
   const list = useRef<HTMLDivElement>(null)
   const [offset, setOffset] = useState(0)
@@ -64,15 +79,16 @@ export const Lyrics: React.FC<Props> = ({ lyrics, position, getPosition, playing
     })
   }, [synced, duration])
 
-  const current = useMemo(() => {
-    if (!synced) return -1
-    let idx = -1
-    for (let i = 0; i < synced.length; i++) {
-      if (synced[i].t <= position + LEAD_MS) idx = i
-      else break
-    }
-    return idx
-  }, [synced, position])
+  // Which line is being sung. Checked 10x/second; re-renders only when it changes.
+  const [current, setCurrent] = useState(-1)
+  useEffect(() => {
+    if (!synced) { setCurrent(-1); return }
+    const check = () => setCurrent(lineAt(synced, getPosition()))
+    check()
+    if (!active) return
+    const id = window.setInterval(check, 100)
+    return () => clearInterval(id)
+  }, [synced, active, getPosition])
 
   // Word fill on the current line, written straight to the DOM each frame.
   // Only words whose fill actually changed get touched, so usually one repaint.
@@ -106,22 +122,25 @@ export const Lyrics: React.FC<Props> = ({ lyrics, position, getPosition, playing
   // Scroll so the current line sits near the top third.
   useLayoutEffect(() => {
     const vp = viewport.current, ls = list.current
-    if (!vp || !ls || !active) return
-    if (synced) {
-      const el = ls.children[Math.max(0, current)] as HTMLElement | undefined
-      setOffset(el ? Math.max(0, el.offsetTop + el.offsetHeight / 2 - vp.clientHeight * ANCHOR) : 0)
-    }
+    if (!vp || !ls || !active || !synced) return
+    const el = ls.children[Math.max(0, current)] as HTMLElement | undefined
+    setOffset(el ? Math.max(0, el.offsetTop + el.offsetHeight / 2 - vp.clientHeight * ANCHOR) : 0)
   }, [current, synced, active])
 
-  // Plain lyrics have no timing: drift through them in step with the song, in coarse steps.
-  const plainStep = plain && duration ? Math.round((position / duration) * 60) : 0
-  useLayoutEffect(() => {
-    const vp = viewport.current, ls = list.current
-    if (!vp || !ls || !active || !plain) return
-    const ratio = duration ? Math.min(1, Math.max(0, (position - 8000) / (duration - 16000))) : 0
-    setOffset(Math.max(0, ls.scrollHeight - vp.clientHeight) * ratio)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [plainStep, plain, active, duration])
+  // Plain lyrics have no timing: drift through them in step with the song, once a second.
+  useEffect(() => {
+    if (!active || !plain) return
+    const move = () => {
+      const vp = viewport.current, ls = list.current
+      if (!vp || !ls) return
+      const pos = getPosition()
+      const ratio = duration ? Math.min(1, Math.max(0, (pos - 8000) / (duration - 16000))) : 0
+      setOffset(Math.round(Math.max(0, ls.scrollHeight - vp.clientHeight) * ratio))
+    }
+    move()
+    const id = window.setInterval(move, 1000)
+    return () => clearInterval(id)
+  }, [plain, active, duration, getPosition])
 
   if (!lyrics || !(synced || plain)) {
     return (

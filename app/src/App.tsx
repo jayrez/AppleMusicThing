@@ -1,18 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import type { Command } from '@shared/types'
 import { link, isMock } from './link'
-import { useArtwork, useLayout, useNowPlaying, usePosition, usePrefs } from './hooks'
+import { useArtwork, useLayout, useNowPlaying, usePreloadArt, usePrefs } from './hooks'
+import { Progress } from './Progress'
 import { Lyrics } from './Lyrics'
 import { IconNext, IconNote, IconPause, IconPlay, IconPrev } from './icons'
 
 const CONTROLS_MS = 3500
 const LONG_PRESS_MS = 600
 const SLEW_MS = 900
-
-const fmt = (ms: number) => {
-  const s = Math.max(0, Math.floor(ms / 1000))
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
-}
 
 const params = new URLSearchParams(location.search)
 
@@ -24,12 +20,12 @@ const App: React.FC = () => {
   const layout = useLayout()
   const { track } = np
   const art = useArtwork(track.hasTrack ? track.artwork : undefined)
+  usePreloadArt(track.next?.artwork)
 
   const [controls, setControls] = useState(isMock && params.get('controls') === '1')
   const [scrubMs, setScrubMs] = useState<number | null>(null)
   const [volToast, setVolToast] = useState<number | null>(null)
   const [playingOverride, setPlayingOverride] = useState<boolean | null>(null)
-  const position = usePosition(track, np.receivedAt, scrubMs)
   const duration = track.durationMs || 0
   const isPlaying = playingOverride ?? !!track.isPlaying
 
@@ -292,22 +288,14 @@ const App: React.FC = () => {
             </div>
 
             <div className="pane lyrics-pane">
-              <Lyrics lyrics={np.lyrics} position={position} getPosition={getPosition} playing={!!track.isPlaying} duration={duration} active={showLyrics} />
+              <Lyrics lyrics={np.lyrics} getPosition={getPosition} playing={!!track.isPlaying} duration={duration} active={showLyrics} />
               <div className="mini">
                 <p className="mini-title">{track.title}</p>
                 <p className="mini-artist">{track.artist}</p>
               </div>
             </div>
 
-            <div className="progress">
-              <div className="bar" ref={barRef} data-scrub>
-                <div className="track"><div className="fill" style={{ width: `${duration ? (position / duration) * 100 : 0}%` }} /></div>
-              </div>
-              <div className="times">
-                <span>{fmt(position)}</span>
-                <span>-{fmt(Math.max(0, duration - position))}</span>
-              </div>
-            </div>
+            <Progress ref={barRef} getPosition={getPosition} duration={duration} live={!!track.isPlaying || scrubMs != null} />
           </>
         )}
       </div>

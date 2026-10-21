@@ -44,21 +44,6 @@ export const useNowPlaying = (onToggleLyrics: () => void) => {
   return np
 }
 
-/** Playback position, advanced locally between updates from the computer. */
-export const usePosition = (track: TrackState, receivedAt: number, override: number | null) => {
-  const [, force] = useState(0)
-  useEffect(() => {
-    if (!track.isPlaying) return
-    const id = setInterval(() => force((n) => n + 1), 250)
-    return () => clearInterval(id)
-  }, [track.isPlaying])
-
-  if (override != null) return override
-  const base = track.positionMs || 0
-  const pos = track.isPlaying ? base + (Date.now() - receivedAt) : base
-  return Math.max(0, Math.min(pos, track.durationMs || pos))
-}
-
 /** Loads artwork fully before showing it, and derives the screen palette from it. */
 export const useArtwork = (url?: string) => {
   const [shown, setShown] = useState<string>('')
@@ -119,4 +104,14 @@ export const useLayout = () => {
     return () => window.removeEventListener('resize', onResize)
   }, [])
   return layout
+}
+
+/** Warm the image cache with the next song's art so the switch is instant. */
+export const usePreloadArt = (url?: string) => {
+  useEffect(() => {
+    const src = link.image(url)
+    if (!src) return
+    const img = new Image()
+    img.src = src
+  }, [url])
 }

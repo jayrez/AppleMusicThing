@@ -12,6 +12,8 @@ export type TrackState = {
   isPlaying?: boolean
   volume?: number
   source?: 'musickit' | 'mediasession'
+  /** The song queued after this one, when Apple Music exposes it. */
+  next?: { id: string; title: string; artist: string; album: string; artwork: string; durationMs: number }
 }
 
 /** A syllable of a word: times in ms, len = letters, used to fill a word piece by piece. */

@@ -35,25 +35,52 @@
       .replace('{f}', 'jpg');
   };
 
+  const describe = (item) => {
+    const a = item.attributes || {};
+    const artworkTemplate = (a.artwork && a.artwork.url) || item.artworkURL || '';
+    return {
+      id: String(item.id || (a.playParams && a.playParams.id) || `${a.name}|${a.artistName}`),
+      title: item.title || a.name || '',
+      artist: item.artistName || a.artistName || '',
+      album: item.albumName || a.albumName || '',
+      artwork: artworkFromTemplate(artworkTemplate),
+      durationMs: Math.round(a.durationInMillis || item.playbackDuration || 0)
+    };
+  };
+
+  // The song queued after the current one, so its lyrics and art can be ready in advance.
+  const nextItem = () => {
+    try {
+      const q = mk.queue;
+      if (!q || !q.items || typeof q.position !== 'number') return null;
+      for (let i = q.position + 1; i < q.items.length && i < q.position + 4; i++) {
+        const it = q.items[i];
+        if (it && it.isPlayable !== false) return it;
+      }
+    } catch (_) { /* queue API differs; skip prefetch */ }
+    return null;
+  };
+
   const fromMusicKit = () => {
     const item = mk.nowPlayingItem;
     if (!item) return { hasTrack: false };
-    const a = item.attributes || {};
-    const artworkTemplate = (a.artwork && a.artwork.url) || item.artworkURL || '';
-    let durationMs = a.durationInMillis || item.playbackDuration || 0;
+    const d = describe(item);
+    let durationMs = d.durationMs;
     if (!durationMs && mk.currentPlaybackDuration) durationMs = mk.currentPlaybackDuration * 1000;
     let isPlaying = !!mk.isPlaying;
     if (!isPlaying && window.MusicKit && window.MusicKit.PlaybackStates) {
       isPlaying = mk.playbackState === window.MusicKit.PlaybackStates.playing;
     }
+    const n = nextItem();
     return {
       hasTrack: true,
-      id: String(item.id || a.playParams?.id || `${a.name}|${a.artistName}`),
-      title: item.title || a.name || '',
-      artist: item.artistName || a.artistName || '',
-      album: item.albumName || a.albumName || '',
-      artwork: artworkFromTemplate(artworkTemplate),
+      id: d.id,
+      title: d.title,
+      artist: d.artist,
+      album: d.album,
+      artwork: d.artwork,
       durationMs: Math.round(durationMs),
+      next: n ? describe(n) : undefined,
       positionMs: Math.round((mk.currentPlaybackTime || 0) * 1000),
       isPlaying,
       volume: typeof mk.volume === 'number' ? mk.volume : 1,
@@ -112,34 +139,52 @@
     window.postMessage({ [TAG]: 'lyrics', lyrics: msg }, window.location.origin);
   };
 
-  const fetchAppleLyrics = async (state) => {
-    lyricsFor = state.id;
-    const trackId = state.id;
-    if (!mk || !mk.api || typeof mk.api.music !== 'function') {
-      return postLyrics({ trackId, status: 'unavailable' });
-    }
-    const item = mk.nowPlayingItem;
-    const a = (item && item.attributes) || {};
-    const catalogId = (a.playParams && a.playParams.catalogId) || (/^\d+$/.test(String(item && item.id)) ? item.id : null);
-    if (!catalogId) return postLyrics({ trackId, status: 'unavailable' });
+  const lyricsCache = new Map(); // trackId -> lyrics message (current and prefetched)
+
+  const loadAppleLyrics = async (item, trackId) => {
+    if (lyricsCache.has(trackId)) return lyricsCache.get(trackId);
+    if (!mk || !mk.api || typeof mk.api.music !== 'function' || !item) return { trackId, status: 'unavailable' };
+    const a = item.attributes || {};
+    const catalogId = (a.playParams && a.playParams.catalogId) || (/^\d+$/.test(String(item.id)) ? item.id : null);
+    if (!catalogId) return { trackId, status: 'unavailable' };
     const sf = mk.storefrontId || mk.storefrontCountryCode || 'us';
+    let result = null;
     for (const kind of ['syllable-lyrics', 'lyrics']) {
       try {
         const res = await mk.api.music(`/v1/catalog/${sf}/songs/${catalogId}/${kind}`);
         const attrs = (res && res.data && res.data.data && res.data.data[0] && res.data.data[0].attributes) || {};
-        let ttml = attrs.ttml || attrs.ttmlLocalizations || '';
-        if (typeof ttml !== 'string') ttml = '';
-        if (lyricsFor !== trackId) return; // song changed meanwhile
-        if (ttml) return postLyrics({ trackId, status: 'ok', ttml });
+        const ttml = typeof attrs.ttml === 'string' ? attrs.ttml : typeof attrs.ttmlLocalizations === 'string' ? attrs.ttmlLocalizations : '';
+        if (ttml) { result = { trackId, status: 'ok', ttml }; break; }
       } catch (_) { /* try the next kind */ }
     }
-    if (lyricsFor === trackId) postLyrics({ trackId, status: 'none' });
+    result = result || { trackId, status: 'none' };
+    lyricsCache.set(trackId, result);
+    if (lyricsCache.size > 12) lyricsCache.delete(lyricsCache.keys().next().value);
+    return result;
+  };
+
+  const fetchAppleLyrics = async (state) => {
+    lyricsFor = state.id;
+    const trackId = state.id;
+    const msg = await loadAppleLyrics(mk && mk.nowPlayingItem, trackId);
+    if (lyricsFor !== trackId) return; // song changed meanwhile
+    postLyrics(msg);
+    // Get the next song's lyrics ready too, so they show the moment it starts.
+    const n = mk && nextItem();
+    if (n) {
+      const nextId = describe(n).id;
+      if (nextId !== trackId && !lyricsCache.has(nextId)) {
+        const pre = await loadAppleLyrics(n, nextId);
+        if (pre.status === 'ok') window.postMessage({ [TAG]: 'lyrics', lyrics: pre, prefetch: true }, window.location.origin);
+      }
+    }
   };
 
   const changed = (a, b) => {
     if (!a || !b) return true;
     if (a.hasTrack !== b.hasTrack || a.id !== b.id || a.isPlaying !== b.isPlaying) return true;
     if (a.title !== b.title || a.artist !== b.artist || a.artwork !== b.artwork) return true;
+    if ((a.next && a.next.id) !== (b.next && b.next.id)) return true;
     if (Math.abs((a.volume || 0) - (b.volume || 0)) > 0.005) return true;
     if (Math.abs((a.durationMs || 0) - (b.durationMs || 0)) > 1000) return true;
     // detect seeks: where the position should be vs where it is

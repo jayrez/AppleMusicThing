@@ -45,6 +45,11 @@ chrome.runtime.onConnect.addListener((port) => {
   port.onMessage.addListener((msg) => {
     const entry = tabs.get(tabId);
     if (!msg || !entry) return;
+    if (msg.type === 'lyrics' && msg.prefetch) {
+      // Next song's lyrics: the app caches them until that song starts.
+      if (tabId === activeTabId) sendWs({ type: 'appleLyrics', lyrics: msg.lyrics });
+      return;
+    }
     if (msg.type === 'lyrics') {
       entry.lyrics = msg.lyrics;
       if (tabId === activeTabId) sendWs({ type: 'appleLyrics', lyrics: msg.lyrics });

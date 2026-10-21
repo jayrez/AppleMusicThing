@@ -36,6 +36,7 @@ button::-moz-focus-inner { border: 0; }
   left: 0; top: 0; right: 0; bottom: 0;
   background: radial-gradient(ellipse 62% 85% at calc(var(--pad-x) + var(--art) / 2) 50%, var(--glow), transparent 70%);
   pointer-events: none;
+  will-change: transform; /* own layer: painted once, never repainted by what's on top */
 }
 
 /* ---------- album art: fixed size and position in every state ---------- */
@@ -50,6 +51,7 @@ button::-moz-focus-inner { border: 0; }
   overflow: hidden;
   background: rgba(255, 255, 255, 0.06);
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.3);
+  will-change: transform; /* keeps the big soft shadow from being repainted */
 }
 
 .art img { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
@@ -81,6 +83,7 @@ button::-moz-focus-inner { border: 0; }
   opacity: 0;
   visibility: hidden;
   transition: opacity 220ms ease, visibility 0s linear 220ms;
+  will-change: opacity;
 }
 .has-controls .controls { opacity: 1; visibility: visible; transition: opacity 160ms ease; }
 
@@ -169,7 +172,7 @@ button::-moz-focus-inner { border: 0; }
   background: rgba(255, 255, 255, 0.16);
   transition: height 160ms ease;
 }
-.fill { height: 100%; border-radius: inherit; background: var(--accent); }
+.fill { width: 100%; height: 100%; border-radius: inherit; background: var(--accent); transform-origin: 0 50%; transform: scaleX(0); will-change: transform; }
 .has-controls .track { height: 8px; border-radius: 4px; }
 .has-controls .fill { background: #fff; }
 
@@ -227,6 +230,7 @@ button::-moz-focus-inner { border: 0; }
 .line.past .w { background-position: 0 0 !important; }
 .line.past { opacity: 0.42; }
 .line.gap { font-size: 18px; }
+.line.far { visibility: hidden; } /* off-screen: keeps its space, costs no paint */
 
 .is-plain .line { font-weight: 500; font-size: 21px; color: rgba(251, 248, 243, 0.75); margin-bottom: 6px; }
 
@@ -263,6 +267,7 @@ button::-moz-focus-inner { border: 0; }
   transform: translateX(10px);
   transition: opacity 200ms ease, transform 200ms ease;
   pointer-events: none;
+  will-change: opacity, transform;
 }
 .volume.show { opacity: 1; transform: none; }
 .volume-track {
