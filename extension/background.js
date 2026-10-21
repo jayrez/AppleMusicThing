@@ -139,7 +139,7 @@ function connect() {
   socket.onerror = () => { /* onclose follows */ };
 }
 
-// Lyrics lookups made through Edge, so they use the Windows proxy settings.
+// Lyrics lookups made through the browser, so they use the system proxy settings.
 // Only LRCLIB is allowed, so the local app can't use this as a general proxy.
 async function browserFetch(id, url) {
   try {

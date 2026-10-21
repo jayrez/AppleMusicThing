@@ -245,8 +245,8 @@ const App: React.FC = () => {
           <div className="empty">
             {np.connected === false ? (
               <>
-                <p className="empty-title">Waiting for Edge</p>
-                <p className="empty-body">Open music.apple.com in Edge with the Apple Music DeskThing Bridge extension turned on.</p>
+                <p className="empty-title">Waiting for the browser</p>
+                <p className="empty-body">Open music.apple.com in Edge or Chrome with the DeskThing Bridge extension turned on.</p>
               </>
             ) : (
               <>

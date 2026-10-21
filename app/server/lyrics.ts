@@ -73,7 +73,7 @@ const toPayload = (trackId: string, r: LrclibRecord | null): LyricsPayload => {
 }
 
 // The computer's own network path can fail on managed networks (DeskThing's
-// runtime ignores the Windows proxy). The extension can fetch through Edge
+// runtime ignores the system proxy). The extension can fetch through the browser
 // instead, which does use the proxy.
 export type FallbackFetch = (url: string) => Promise<{ status: number; body: string }>
 let fallbackFetch: FallbackFetch | null = null

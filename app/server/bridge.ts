@@ -2,8 +2,8 @@ import { WebSocketServer, WebSocket } from 'ws'
 import type { IncomingMessage } from 'http'
 import type { AppleLyricsMessage, Command, TrackState } from '../shared/types'
 
-// Local WebSocket server that the "Apple Music DeskThing Bridge" Edge
-// extension connects to. Bound to 127.0.0.1 only, and only browser-extension
+// Local WebSocket server that the "Apple Music DeskThing Bridge" browser
+// extension (Edge or Chrome) connects to. Bound to 127.0.0.1 only, and only browser-extension
 // origins are accepted, so ordinary web pages can't drive playback.
 
 type Handlers = {
@@ -80,7 +80,7 @@ export class ExtensionBridge {
     return true
   }
 
-  /** Ask the extension to GET a URL through Edge (and the Windows proxy). */
+  /** Ask the extension to GET a URL through the browser (and the system proxy). */
   fetchViaBrowser(url: string): Promise<{ status: number; body: string }> {
     if (!this.connected) return Promise.reject(new Error('extension not connected'))
     const id = this.nextFetchId++

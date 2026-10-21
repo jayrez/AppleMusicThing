@@ -161,7 +161,7 @@ const settings: AppSettings = {
   [SETTING_IDS.BRIDGE_PORT]: {
     id: SETTING_IDS.BRIDGE_PORT,
     label: 'Bridge port',
-    description: 'Local port the Edge extension connects to. Must match the port in the extension popup.',
+    description: 'Local port the browser extension connects to. Must match the port in the extension popup.',
     type: SETTING_TYPES.NUMBER,
     value: DEFAULT_PORT,
     min: 1024,
