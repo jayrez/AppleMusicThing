@@ -99,6 +99,41 @@
     last = state;
     lastSentAt = Date.now();
     window.postMessage({ [TAG]: 'state', state }, window.location.origin);
+    if (state.hasTrack && state.id !== lyricsFor) fetchAppleLyrics(state);
+  };
+
+  // ---------- Apple's own lyrics (TTML with line and often word timing) ----------
+
+  let lyricsFor = null;
+  let lastLyrics = null;
+
+  const postLyrics = (msg) => {
+    lastLyrics = msg;
+    window.postMessage({ [TAG]: 'lyrics', lyrics: msg }, window.location.origin);
+  };
+
+  const fetchAppleLyrics = async (state) => {
+    lyricsFor = state.id;
+    const trackId = state.id;
+    if (!mk || !mk.api || typeof mk.api.music !== 'function') {
+      return postLyrics({ trackId, status: 'unavailable' });
+    }
+    const item = mk.nowPlayingItem;
+    const a = (item && item.attributes) || {};
+    const catalogId = (a.playParams && a.playParams.catalogId) || (/^\d+$/.test(String(item && item.id)) ? item.id : null);
+    if (!catalogId) return postLyrics({ trackId, status: 'unavailable' });
+    const sf = mk.storefrontId || mk.storefrontCountryCode || 'us';
+    for (const kind of ['syllable-lyrics', 'lyrics']) {
+      try {
+        const res = await mk.api.music(`/v1/catalog/${sf}/songs/${catalogId}/${kind}`);
+        const attrs = (res && res.data && res.data.data && res.data.data[0] && res.data.data[0].attributes) || {};
+        let ttml = attrs.ttml || attrs.ttmlLocalizations || '';
+        if (typeof ttml !== 'string') ttml = '';
+        if (lyricsFor !== trackId) return; // song changed meanwhile
+        if (ttml) return postLyrics({ trackId, status: 'ok', ttml });
+      } catch (_) { /* try the next kind */ }
+    }
+    if (lyricsFor === trackId) postLyrics({ trackId, status: 'none' });
   };
 
   const changed = (a, b) => {
@@ -164,7 +199,9 @@
           if (mk) mk.volume = v; else if (audio) audio.volume = v;
           break;
         }
-        case 'refresh': break;
+        case 'refresh':
+          if (lastLyrics) window.postMessage({ [TAG]: 'lyrics', lyrics: lastLyrics }, window.location.origin);
+          break;
         default: return;
       }
     } catch (err) {

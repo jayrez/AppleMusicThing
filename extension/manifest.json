@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Apple Music DeskThing Bridge",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Sends Apple Music web now-playing info to the DeskThing Apple Music app and lets the Car Thing control playback.",
   "permissions": [
     "storage"

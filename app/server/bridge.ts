@@ -1,6 +1,6 @@
 import { WebSocketServer, WebSocket } from 'ws'
 import type { IncomingMessage } from 'http'
-import type { Command, TrackState } from '../shared/types'
+import type { AppleLyricsMessage, Command, TrackState } from '../shared/types'
 
 // Local WebSocket server that the "Apple Music DeskThing Bridge" Edge
 // extension connects to. Bound to 127.0.0.1 only, and only browser-extension
@@ -9,6 +9,7 @@ import type { Command, TrackState } from '../shared/types'
 type Handlers = {
   onState: (s: TrackState) => void
   onStatus: (connected: boolean) => void
+  onAppleLyrics: (msg: AppleLyricsMessage) => void
 }
 
 const allowedOrigin = (req: IncomingMessage) => {
@@ -56,10 +57,11 @@ export class ExtensionBridge {
       this.handlers.onStatus(true)
 
       ws.on('message', (raw) => {
-        let msg: { type?: string; state?: TrackState; id?: number; status?: number; body?: string; error?: string }
+        let msg: { type?: string; state?: TrackState; lyrics?: AppleLyricsMessage; id?: number; status?: number; body?: string; error?: string }
         try { msg = JSON.parse(String(raw)) } catch { return }
         if (msg.type === 'state' && msg.state) this.handlers.onState(msg.state)
         else if (msg.type === 'fetchResult' && typeof msg.id === 'number') this.settleFetch(msg)
+        else if (msg.type === 'appleLyrics' && msg.lyrics) this.handlers.onAppleLyrics(msg.lyrics)
       })
 
       ws.on('close', () => {

@@ -2,7 +2,8 @@ import { DeskThing } from '@deskthing/server'
 import { Action, AppSettings, DESKTHING_EVENTS, SETTING_TYPES } from '@deskthing/types'
 import { ExtensionBridge } from './bridge'
 import { fetchLyrics, setFallbackFetch } from './lyrics'
-import { ACTION_IDS, Command, LyricsPayload, SETTING_IDS, ToClient, ToServer, TrackState } from '../shared/types'
+import { parseTtml } from './ttml'
+import { ACTION_IDS, AppleLyricsMessage, Command, LyricsPayload, SETTING_IDS, ToClient, ToServer, TrackState } from '../shared/types'
 
 const DeskThingServer = DeskThing as unknown as typeof DeskThing & {
   send: (data: ToClient) => void
@@ -29,17 +30,52 @@ const bridge = new ExtensionBridge({
   onStatus: (connected) => {
     sendToClient({ type: 'am', request: 'bridge', payload: { connected } })
     if (connected) bridge.requestState()
-  }
+  },
+  onAppleLyrics: (msg) => useAppleLyrics(msg)
 })
+
+// Apple's own lyrics (from the extension) win over LRCLIB: they match what
+// Apple Music shows and often have word-by-word timing.
+const appleCache = new Map<string, LyricsPayload>()
+
+const useAppleLyrics = (msg: AppleLyricsMessage) => {
+  if (msg.status !== 'ok' || !msg.ttml) return // LRCLIB stays in charge
+  let payload: LyricsPayload | null = null
+  try {
+    const parsed = parseTtml(msg.ttml)
+    if (parsed && 'synced' in parsed) payload = { trackId: msg.trackId, status: 'synced', synced: parsed.synced, source: 'apple' }
+    else if (parsed && 'plain' in parsed) payload = { trackId: msg.trackId, status: 'plain', plain: parsed.plain, source: 'apple' }
+  } catch (err) {
+    console.warn('[applemusic] could not read Apple lyrics', err)
+  }
+  if (!payload) return
+  appleCache.set(msg.trackId, payload)
+  if (appleCache.size > 30) appleCache.delete(appleCache.keys().next().value as string)
+  if (msg.trackId !== state.id) return
+  // Unsynced Apple lyrics don't replace synced ones from LRCLIB.
+  if (payload.status === 'plain' && lyrics?.trackId === msg.trackId && lyrics.status === 'synced') return
+  lyrics = payload
+  sendToClient({ type: 'am', request: 'lyrics', payload })
+}
 
 setFallbackFetch((url) => bridge.fetchViaBrowser(url))
 
 const loadLyrics = async (track: TrackState) => {
   const trackId = track.id || ''
+  const apple = appleCache.get(trackId)
+  if (apple?.status === 'synced') {
+    lyrics = apple
+    sendToClient({ type: 'am', request: 'lyrics', payload: apple })
+    return
+  }
   lyrics = { trackId, status: 'loading' }
   sendToClient({ type: 'am', request: 'lyrics', payload: lyrics })
   const result = await fetchLyrics(track)
   if (state.id !== trackId) return // song changed while we were fetching
+  // Apple's lyrics may have arrived while LRCLIB was answering.
+  if (lyrics?.trackId === trackId && lyrics.source === 'apple') {
+    if (lyrics.status === 'synced' || result.status !== 'synced') return
+  }
   lyrics = result
   sendToClient({ type: 'am', request: 'lyrics', payload: result })
 }

@@ -23,14 +23,19 @@
       setTimeout(connect, 1000);
     });
     if (lastState) port.postMessage({ type: 'state', state: lastState });
+    if (lastLyrics) port.postMessage({ type: 'lyrics', lyrics: lastLyrics });
     window.postMessage({ [TAG]: 'cmd', cmd: 'refresh' }, window.location.origin);
   };
 
+  let lastLyrics = null;
+
   window.addEventListener('message', (e) => {
-    if (e.source !== window || !e.data || e.data[TAG] !== 'state') return;
-    lastState = e.data.state;
-    if (port) {
-      try { port.postMessage({ type: 'state', state: lastState }); } catch (_) { /* reconnecting */ }
+    if (e.source !== window || !e.data) return;
+    let msg = null;
+    if (e.data[TAG] === 'state') { lastState = e.data.state; msg = { type: 'state', state: lastState }; }
+    else if (e.data[TAG] === 'lyrics') { lastLyrics = e.data.lyrics; msg = { type: 'lyrics', lyrics: lastLyrics }; }
+    if (msg && port) {
+      try { port.postMessage(msg); } catch (_) { /* reconnecting */ }
     }
   });
 

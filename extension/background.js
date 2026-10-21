@@ -40,16 +40,25 @@ const pickActiveTab = () => {
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== 'am-tab' || !port.sender || !port.sender.tab) return;
   const tabId = port.sender.tab.id;
-  tabs.set(tabId, { port, state: null, updatedAt: Date.now() });
+  tabs.set(tabId, { port, state: null, lyrics: null, updatedAt: Date.now() });
 
   port.onMessage.addListener((msg) => {
-    if (!msg || msg.type !== 'state') return;
     const entry = tabs.get(tabId);
-    if (!entry) return;
+    if (!msg || !entry) return;
+    if (msg.type === 'lyrics') {
+      entry.lyrics = msg.lyrics;
+      if (tabId === activeTabId) sendWs({ type: 'appleLyrics', lyrics: msg.lyrics });
+      return;
+    }
+    if (msg.type !== 'state') return;
+    const prevActive = activeTabId;
     entry.state = msg.state;
     entry.updatedAt = Date.now();
     activeTabId = pickActiveTab();
-    if (tabId === activeTabId) sendWs({ type: 'state', state: msg.state });
+    if (tabId === activeTabId) {
+      sendWs({ type: 'state', state: msg.state });
+      if (prevActive !== activeTabId && entry.lyrics) sendWs({ type: 'appleLyrics', lyrics: entry.lyrics });
+    }
   });
 
   port.onDisconnect.addListener(() => {
@@ -100,6 +109,7 @@ function connect() {
     sendWs({ type: 'hello', version: chrome.runtime.getManifest().version });
     const t = activeTabId != null && tabs.get(activeTabId);
     sendWs({ type: 'state', state: (t && t.state) || { hasTrack: false } });
+    if (t && t.lyrics) sendWs({ type: 'appleLyrics', lyrics: t.lyrics });
     clearInterval(pingTimer);
     // Regular traffic also keeps the MV3 service worker alive.
     pingTimer = setInterval(() => sendWs({ type: 'ping', t: Date.now() }), 20000);

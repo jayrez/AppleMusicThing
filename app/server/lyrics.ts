@@ -64,10 +64,10 @@ const toPayload = (trackId: string, r: LrclibRecord | null): LyricsPayload => {
   if (r.instrumental) return { trackId, status: 'instrumental' }
   if (r.syncedLyrics) {
     const synced = parseLrc(r.syncedLyrics)
-    if (synced.length) return { trackId, status: 'synced', synced }
+    if (synced.length) return { trackId, status: 'synced', synced, source: 'lrclib' }
   }
   if (r.plainLyrics) {
-    return { trackId, status: 'plain', plain: r.plainLyrics.split(/\r?\n/).map((l) => l.trim()) }
+    return { trackId, status: 'plain', plain: r.plainLyrics.split(/\r?\n/).map((l) => l.trim()), source: 'lrclib' }
   }
   return { trackId, status: 'none' }
 }

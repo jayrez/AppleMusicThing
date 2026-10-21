@@ -14,16 +14,22 @@ export type TrackState = {
   source?: 'musickit' | 'mediasession'
 }
 
-export type LyricWord = { t: number; text: string } // t in ms
-/** t in ms. `words` is present only when the source had per-word timing (enhanced LRC). */
-export type LyricLine = { t: number; text: string; words?: LyricWord[] }
+/** A syllable of a word: times in ms, len = letters, used to fill a word piece by piece. */
+export type LyricPart = { t: number; end: number; len: number }
+export type LyricWord = { t: number; end?: number; text: string; parts?: LyricPart[] }
+/** Times in ms. `end` and `words` are present when the source has them (Apple lyrics, enhanced LRC). */
+export type LyricLine = { t: number; end?: number; text: string; words?: LyricWord[] }
 
 export type LyricsPayload = {
   trackId: string
   status: 'loading' | 'synced' | 'plain' | 'instrumental' | 'none' | 'error'
   synced?: LyricLine[]
   plain?: string[]
+  source?: 'apple' | 'lrclib'
 }
+
+/** Lyrics the extension fetched from Apple Music for the current song. */
+export type AppleLyricsMessage = { trackId: string; status: 'ok' | 'none' | 'unavailable'; ttml?: string }
 
 export type Command = 'playPause' | 'next' | 'prev' | 'seek' | 'volume' | 'volumeDelta'
 
