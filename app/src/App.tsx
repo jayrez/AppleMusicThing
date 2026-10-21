@@ -292,7 +292,7 @@ const App: React.FC = () => {
             {np.connected === false ? (
               <>
                 <p className="empty-title">Waiting for the browser</p>
-                <p className="empty-body">Open music.apple.com in Edge or Chrome with the DeskThing Bridge extension turned on.</p>
+                <p className="empty-body">Open music.apple.com in Edge or Chrome with the Now Playing Bridge extension turned on.</p>
               </>
             ) : (
               <>

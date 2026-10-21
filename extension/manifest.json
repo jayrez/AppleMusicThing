@@ -1,8 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Apple Music DeskThing Bridge",
-  "version": "1.3.0",
-  "description": "Sends Apple Music web now-playing info to the DeskThing Apple Music app and lets the Car Thing control playback.",
+  "name": "Now Playing Bridge for DeskThing",
+  "short_name": "Now Playing Bridge",
+  "version": "1.4.0",
+  "description": "Shows what you play on Apple Music on the web on a Car Thing running DeskThing, with synced lyrics and playback controls.",
+  "homepage_url": "https://github.com/jayrez/AppleMusicThing",
   "permissions": [
     "storage"
   ],
@@ -36,7 +38,7 @@
     }
   ],
   "action": {
-    "default_title": "Apple Music DeskThing Bridge",
+    "default_title": "Now Playing Bridge for DeskThing",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.png",

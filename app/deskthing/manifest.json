@@ -2,8 +2,8 @@
   "id": "applemusic",
   "requires": [],
   "label": "Apple Music",
-  "version": "1.7.1",
-  "description": "Album-art-first now playing screen for Apple Music web, with synced lyrics. Needs the Apple Music DeskThing Bridge extension in Edge or Chrome.",
+  "version": "1.7.2",
+  "description": "Album-art-first now playing screen for Apple Music web, with synced lyrics. Needs the Now Playing Bridge for DeskThing extension in Edge or Chrome.",
   "author": "Julio",
   "platforms": [
     "windows",

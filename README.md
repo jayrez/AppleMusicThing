@@ -31,7 +31,7 @@ music.apple.com tab ──▶ browser extension ──▶ DeskThing app (on your
                          sends commands         settings, button actions             controls
 ```
 
-- **`extension/`**: Apple Music DeskThing Bridge. Reads what's playing in your music.apple.com tab, fetches Apple's lyrics for it, and carries out play/pause, skip, seek and volume.
+- **`extension/`**: Now Playing Bridge for DeskThing, the browser extension. Reads what's playing in your music.apple.com tab, fetches Apple's lyrics for it, and carries out play/pause, skip, seek and volume.
 - **`app/`**: the DeskThing app. Its server side runs inside DeskThing on your computer and talks to the extension; its screen runs on the Car Thing.
 
 ## Requirements
@@ -43,16 +43,16 @@ music.apple.com tab ──▶ browser extension ──▶ DeskThing app (on your
 ## Install
 
 ### 1. The browser extension
-1. Download this repo (or the release's `applemusic-bridge-extension.zip`) and keep the `extension` folder somewhere permanent; the browser loads it from that folder.
+1. Download this repo (or the release's `now-playing-bridge-v1.4.0.zip`) and keep the `extension` folder (or the unzipped files) somewhere permanent; the browser loads it from that folder.
 2. Open the extensions page (`edge://extensions` in Edge, `chrome://extensions` in Chrome), turn on **Developer mode**, click **Load unpacked**, and pick the `extension` folder.
 3. Reload any open music.apple.com tab.
 
 ### 2. The DeskThing app
-1. Get `applemusic-v1.7.1.zip` from the Releases page (or build it, see below). In DeskThing, open **Apps**, choose to add an app from a file, and pick that zip.
+1. Get `applemusic-v1.7.2.zip` from the Releases page (or build it, see below). In DeskThing, open **Apps**, choose to add an app from a file, and pick that zip.
 2. Open the app on the Car Thing.
 3. Click the extension's toolbar icon (in Chrome, pin it from the puzzle-piece menu first). It should say **Connected** and show the current song.
 
-   <img src="docs/screenshots/extension-popup.png" alt="Extension popup showing Connected, one Apple Music tab, the current song, and port 8899" width="361">
+   <img src="docs/screenshots/extension-popup.png" alt="Now Playing Bridge popup showing Connected, one Apple Music tab, the current song, and port 8899" width="300">
 
 ## Using it
 
@@ -95,17 +95,24 @@ The app also registers mappable actions (**Apple Music: Play / Pause, Next, Prev
 - **"Couldn't reach the lyrics service"**: the app tries lrclib.net directly first; if the computer's network blocks that (common behind a company proxy, which DeskThing doesn't use), it fetches through the browser instead. If it still fails, check that `https://lrclib.net/api/search?q=hello` opens in your browser; if it's blocked there, a web filter is blocking the site.
 - **An update doesn't seem to apply on the Car Thing**: fully close and reopen the app on the Car Thing; it can keep showing a cached copy.
 
-## Security notes
+## Privacy and security
+
+No accounts, servers or analytics: song info goes only to the DeskThing app on your own computer, plus lrclib.net lookups when Apple has no lyrics. Full details in the [privacy policy](PRIVACY.md).
+
 
 - The bridge listens on `127.0.0.1` only and refuses connections that don't come from a browser extension, so websites can't control playback through it.
 - The extension only runs on music.apple.com. Besides local storage for the port number, it can reach lrclib.net, and it only fetches lrclib.net URLs on the app's behalf, so the app can't use it as a general proxy.
+
+## Publishing the extension
+
+Store-ready listing text, permission justifications, data-use answers and images for the Chrome Web Store and Microsoft Edge Add-ons are in [`store/LISTING.md`](store/LISTING.md). Build the upload zip with `store/package.sh`.
 
 ## Building from source
 
 ```
 cd app
 npm install
-npm run build        # → app/dist/applemusic-v1.7.1.zip
+npm run build        # → app/dist/applemusic-v1.7.2.zip
 npx vite             # preview the screen in a browser with demo data
 ```
 
@@ -119,6 +126,7 @@ app/
   deskthing/   app manifest and action icons
 extension/     the browser extension for Edge or Chrome (Manifest V3, no build step)
 docs/          screenshots
+store/         browser store listing text, images, and package.sh for the upload zip
 ```
 
 ## Credits

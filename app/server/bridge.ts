@@ -2,7 +2,7 @@ import { WebSocketServer, WebSocket } from 'ws'
 import type { IncomingMessage } from 'http'
 import type { AppleLyricsMessage, Command, TrackState } from '../shared/types'
 
-// Local WebSocket server that the "Apple Music DeskThing Bridge" browser
+// Local WebSocket server that the "Now Playing Bridge for DeskThing" browser
 // extension (Edge or Chrome) connects to. Bound to 127.0.0.1 only, and only browser-extension
 // origins are accepted, so ordinary web pages can't drive playback.
 
