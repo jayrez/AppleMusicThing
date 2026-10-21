@@ -140,3 +140,7 @@ Full license texts for the bundled third-party code are in [THIRD_PARTY_NOTICES.
 ## Disclaimer
 
 This is an independent personal project, not affiliated with, endorsed by, or sponsored by Apple Inc., Spotify AB, DeskThing or Thing Labs. Apple Music and MusicKit are trademarks of Apple Inc.; Spotify and Car Thing are trademarks of Spotify AB. Album artwork and lyrics shown in the app and in the screenshots belong to their respective owners. Lyrics and artwork are fetched for display only, for the signed-in listener, and aren't stored or redistributed.
+
+## License
+
+[MIT](LICENSE) © 2026 Julio Ramirez. Third-party code bundled in the app keeps its own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
