@@ -34,6 +34,8 @@ music.apple.com tab ──▶ browser extension ──▶ DeskThing app (on your
 - **`extension/`**: Now Playing Bridge for DeskThing, the browser extension. Reads what's playing in your music.apple.com tab, fetches Apple's lyrics for it, and carries out play/pause, skip, seek and volume.
 - **`app/`**: the DeskThing app. Its server side runs inside DeskThing on your computer and talks to the extension; its screen runs on the Car Thing.
 
+For the full technical tour (how the player is read, where lyrics and art come from, the local bridge, and how the Car Thing keeps it smooth) see [How it works](docs/HOW-IT-WORKS.md).
+
 ## Requirements
 
 - A Car Thing already running DeskThing. If yours isn't set up yet, follow DeskThing's [setup video](https://www.youtube.com/watch?v=iW2biAnq0n8) and the Thing Labs [flashing guide](https://carthing.wiki/first-steps/flashing).
@@ -136,7 +138,7 @@ app/
   shared/      message and type definitions used by both
   deskthing/   app manifest and action icons
 extension/     the browser extension for Edge or Chrome (Manifest V3, no build step)
-docs/          screenshots
+docs/          screenshots and HOW-IT-WORKS.md
 store/         browser store listing text, images, and package.sh for the upload zip
 ```
 
