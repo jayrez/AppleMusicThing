@@ -52,6 +52,8 @@ music.apple.com tab ──▶ browser extension ──▶ DeskThing app (on your
 2. Open the app on the Car Thing.
 3. Click the extension's toolbar icon (in Chrome, pin it from the puzzle-piece menu first). It should say **Connected** and show the current song.
 
+   <img src="docs/screenshots/extension-popup.png" alt="Extension popup showing Connected, one Apple Music tab, the current song, and port 8899" width="361">
+
 ## Using it
 
 | Input | Does |
