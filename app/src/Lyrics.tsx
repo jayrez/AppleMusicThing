@@ -1,11 +1,11 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import type { LyricsPayload } from '@shared/types'
+import React, { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import type { LyricLine, LyricsPayload } from '@shared/types'
 import { fillAt, wordSpans, WordSpan } from './timing'
 
 type Props = {
   lyrics: LyricsPayload | null
-  position: number // coarse (4x/second); drives which line is current and scrolling
-  getPosition: () => number // precise, read every frame for the word fill
+  position: number // coarse (4x/second); decides which line is current
+  getPosition: () => number // smooth, read every frame for the word fill
   playing: boolean
   duration: number
   active: boolean
@@ -21,14 +21,39 @@ const statusText: Record<string, string> = {
   error: "Couldn't reach the lyrics service"
 }
 
+// The list only re-renders when the current line changes, not on every clock
+// tick; the Car Thing's CPU can't afford to diff hundreds of words 4x a second.
+const SyncedList = memo(function SyncedList({ lines, spans, current }: { lines: LyricLine[]; spans: WordSpan[][]; current: number }) {
+  return (
+    <>
+      {lines.map((l, i) => {
+        const state = i === current ? 'now' : i < current ? 'past' : 'next'
+        return (
+          <p key={i} className={`line ${state}${l.text ? '' : ' gap'}`}>
+            {spans[i].map((w, j) => (
+              <React.Fragment key={j}>
+                {j > 0 && ' '}
+                <span className="w">{w.text}</span>
+              </React.Fragment>
+            ))}
+          </p>
+        )
+      })}
+    </>
+  )
+})
+
+const PlainList = memo(function PlainList({ lines }: { lines: string[] }) {
+  return <>{lines.map((l, i) => <p key={i} className={`line${l ? '' : ' gap'}`}>{l || ' '}</p>)}</>
+})
+
 export const Lyrics: React.FC<Props> = ({ lyrics, position, getPosition, playing, duration, active }) => {
   const viewport = useRef<HTMLDivElement>(null)
   const list = useRef<HTMLDivElement>(null)
-  const wordEls = useRef<(HTMLSpanElement | null)[]>([])
   const [offset, setOffset] = useState(0)
 
-  const synced = lyrics?.status === 'synced' ? lyrics.synced || [] : null
-  const plain = lyrics?.status === 'plain' ? lyrics.plain || [] : null
+  const synced = lyrics?.status === 'synced' ? lyrics.synced || null : null
+  const plain = lyrics?.status === 'plain' ? lyrics.plain || null : null
 
   // Word timings for every line, computed once per song.
   const spans = useMemo<WordSpan[][]>(() => {
@@ -49,39 +74,54 @@ export const Lyrics: React.FC<Props> = ({ lyrics, position, getPosition, playing
     return idx
   }, [synced, position])
 
-  // Smooth word-by-word fill on the current line, painted directly each frame.
+  // Word fill on the current line, written straight to the DOM each frame.
+  // Only words whose fill actually changed get touched, so usually one repaint.
   useEffect(() => {
-    if (!active || current < 0 || !spans[current]) return
-    const line = spans[current]
+    if (!active || current < 0 || !spans[current] || !list.current) return
+    const lineEl = list.current.children[current] as HTMLElement | undefined
+    if (!lineEl) return
+    const els = Array.prototype.slice.call(lineEl.querySelectorAll('.w')) as HTMLElement[]
+    const words = spans[current]
+    const last: number[] = words.map(() => -1)
     let raf = 0
     const paint = () => {
       const pos = getPosition()
-      for (let i = 0; i < line.length; i++) {
-        const el = wordEls.current[i]
-        if (el) el.style.backgroundPosition = `${(1 - fillAt(line[i], pos)) * 100}% 0`
+      for (let i = 0; i < words.length && i < els.length; i++) {
+        const f = Math.round(fillAt(words[i], pos) * 400) / 400 // quantize: skip sub-pixel writes
+        if (f !== last[i]) {
+          last[i] = f
+          els[i].style.backgroundPosition = `${(1 - f) * 100}% 0`
+        }
       }
       if (playing) raf = requestAnimationFrame(paint)
     }
     paint()
-    return () => cancelAnimationFrame(raf)
+    return () => {
+      cancelAnimationFrame(raf)
+      // Hand the words back to the stylesheet (past/next states).
+      els.forEach((el) => { el.style.backgroundPosition = '' })
+    }
   }, [active, current, spans, playing, getPosition])
 
+  // Scroll so the current line sits near the top third.
   useLayoutEffect(() => {
     const vp = viewport.current, ls = list.current
     if (!vp || !ls || !active) return
-    const vpH = vp.clientHeight
     if (synced) {
       const el = ls.children[Math.max(0, current)] as HTMLElement | undefined
-      if (!el) return setOffset(0)
-      setOffset(Math.max(0, el.offsetTop + el.offsetHeight / 2 - vpH * ANCHOR))
-    } else if (plain) {
-      // No timing info: scroll through the words in step with the song.
-      const ratio = duration ? Math.min(1, Math.max(0, (position - 8000) / (duration - 16000))) : 0
-      setOffset(Math.max(0, ls.scrollHeight - vpH) * ratio)
-    } else {
-      setOffset(0)
+      setOffset(el ? Math.max(0, el.offsetTop + el.offsetHeight / 2 - vp.clientHeight * ANCHOR) : 0)
     }
-  }, [current, synced, plain, active, position, duration])
+  }, [current, synced, active])
+
+  // Plain lyrics have no timing: drift through them in step with the song, in coarse steps.
+  const plainStep = plain && duration ? Math.round((position / duration) * 60) : 0
+  useLayoutEffect(() => {
+    const vp = viewport.current, ls = list.current
+    if (!vp || !ls || !active || !plain) return
+    const ratio = duration ? Math.min(1, Math.max(0, (position - 8000) / (duration - 16000))) : 0
+    setOffset(Math.max(0, ls.scrollHeight - vp.clientHeight) * ratio)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plainStep, plain, active, duration])
 
   if (!lyrics || !(synced || plain)) {
     return (
@@ -91,8 +131,6 @@ export const Lyrics: React.FC<Props> = ({ lyrics, position, getPosition, playing
     )
   }
 
-  wordEls.current = []
-
   return (
     <div className="lyrics-viewport" ref={viewport}>
       <div
@@ -100,26 +138,7 @@ export const Lyrics: React.FC<Props> = ({ lyrics, position, getPosition, playing
         ref={list}
         style={{ transform: `translate3d(0, ${-offset}px, 0)` }}
       >
-        {synced
-          ? synced.map((l, i) => {
-              const state = i === current ? 'now' : i < current ? 'past' : 'next'
-              return (
-                <p key={i} className={`line ${state}${l.text ? '' : ' gap'}`}>
-                  {spans[i].map((w, j) => (
-                    <React.Fragment key={j}>
-                      {j > 0 && ' '}
-                      <span
-                        className="w"
-                        ref={i === current ? (el) => { wordEls.current[j] = el } : undefined}
-                      >
-                        {w.text}
-                      </span>
-                    </React.Fragment>
-                  ))}
-                </p>
-              )
-            })
-          : plain!.map((l, i) => <p key={i} className={`line${l ? '' : ' gap'}`}>{l || ' '}</p>)}
+        {synced ? <SyncedList lines={synced} spans={spans} current={current} /> : <PlainList lines={plain!} />}
       </div>
     </div>
   )

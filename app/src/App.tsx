@@ -7,6 +7,7 @@ import { IconNext, IconNote, IconPause, IconPlay, IconPrev } from './icons'
 
 const CONTROLS_MS = 3500
 const LONG_PRESS_MS = 600
+const SLEW_MS = 900
 
 const fmt = (ms: number) => {
   const s = Math.max(0, Math.floor(ms / 1000))
@@ -32,14 +33,41 @@ const App: React.FC = () => {
   const duration = track.durationMs || 0
   const isPlaying = playingOverride ?? !!track.isPlaying
 
-  // Precise position for per-frame drawing (lyrics fill), without re-rendering.
-  const clock = useRef({ base: 0, at: 0, playing: false, scrub: null as number | null, dur: 0 })
-  clock.current = { base: track.positionMs || 0, at: np.receivedAt, playing: !!track.isPlaying, scrub: scrubMs, dur: duration }
+  // Smooth position for per-frame drawing (lyrics fill), without re-rendering.
+  // When a fresh position arrives from the computer, small differences are
+  // eased in over SLEW_MS instead of jumping; big ones (seeks) jump.
+  const clock = useRef({
+    base: 0, at: 0, playing: false, scrub: null as number | null, dur: 0,
+    corr: 0, corrAt: 0, lastOut: null as number | null, trackId: undefined as string | undefined
+  })
+  {
+    const c = clock.current
+    const base = track.positionMs || 0
+    if (np.receivedAt !== c.at || track.id !== c.trackId) {
+      const now = Date.now()
+      const newRaw = track.isPlaying ? base + (now - np.receivedAt) : base
+      const diff = c.lastOut == null ? 0 : c.lastOut - newRaw
+      const sameSong = track.id === c.trackId
+      c.corr = sameSong && c.playing && track.isPlaying && Math.abs(diff) < 1500 ? diff : 0
+      c.corrAt = now
+      c.base = base
+      c.at = np.receivedAt
+      c.trackId = track.id
+    }
+    c.playing = !!track.isPlaying
+    c.scrub = scrubMs
+    c.dur = duration
+  }
   const getPosition = useCallback(() => {
     const c = clock.current
     if (c.scrub != null) return c.scrub
-    const p = c.playing ? c.base + (Date.now() - c.at) : c.base
-    return c.dur ? Math.min(p, c.dur) : p
+    const now = Date.now()
+    const raw = c.playing ? c.base + (now - c.at) : c.base
+    const ease = Math.max(0, 1 - (now - c.corrAt) / SLEW_MS)
+    let out = raw + c.corr * ease
+    if (c.dur) out = Math.min(out, c.dur)
+    c.lastOut = out
+    return out
   }, [])
 
   const hideTimer = useRef<number>()

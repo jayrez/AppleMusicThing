@@ -77,6 +77,13 @@ export const startMock = (emit: (m: ToClient) => void) => {
     }, 400)
   }
 
+  // Like the real bridge: resync position every 4s, with a little network/timer error.
+  setInterval(() => {
+    if (!s.hasTrack || !s.isPlaying) return
+    const jitter = (Math.random() - 0.5) * 300
+    emit({ type: 'am', request: 'state', payload: { ...s, positionMs: pos() + jitter } })
+  }, 4000)
+
   setTimeout(() => {
     emit({ type: 'am', request: 'bridge', payload: { connected: params.get('state') !== 'offline' } })
     push()
