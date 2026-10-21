@@ -43,8 +43,10 @@ const SyncedList = memo(function SyncedList({ lines, spans, current }: { lines: 
           return <p key={i} className={`line far${l.text ? '' : ' gap'}`}>{l.text || '♪'}</p>
         }
         const state = i === current ? 'now' : i < current ? 'past' : 'next'
+        const d = Math.abs(i - current)
+        const soft = d >= 4 ? ' d4' : d === 3 ? ' d3' : d === 2 ? ' d2' : ''
         return (
-          <p key={i} className={`line ${state}${l.text ? '' : ' gap'}`}>
+          <p key={i} className={`line ${state}${soft}${l.text ? '' : ' gap'}`}>
             {spans[i].map((w, j) => (
               <React.Fragment key={j}>
                 {j > 0 && ' '}

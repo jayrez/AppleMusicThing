@@ -241,7 +241,7 @@ const App: React.FC = () => {
   const colWidth = w - colLeft - padX
   const ready = np.connected !== false && track.hasTrack
   const titleLen = (track.title || '').length
-  const titleSize = titleLen > 48 ? 28 : titleLen > 26 ? 32 : 38
+  const titleSize = titleLen > 48 ? 26 : titleLen > 26 ? 30 : 34
 
   const style = {
     '--base': art.palette.base,
@@ -306,7 +306,6 @@ const App: React.FC = () => {
             <div className="pane info-pane">
               <h1 className="title">{track.title}</h1>
               <p className="artist">{track.artist}</p>
-              {track.album && <p className="album">{track.album}</p>}
             </div>
 
             <div className="pane lyrics-pane">

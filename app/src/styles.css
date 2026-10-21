@@ -5,8 +5,8 @@
 html, body, #root { width: 100%; height: 100%; overflow: hidden; background: #000; }
 
 body {
-  font-family: 'Bricolage Grotesque', 'Segoe UI', Roboto, Arial, sans-serif;
-  color: #fbf8f3;
+  font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  color: #fff;
   -webkit-font-smoothing: antialiased;
   -webkit-user-select: none;
   user-select: none;
@@ -50,7 +50,7 @@ button::-moz-focus-inner { border: 0; }
 
 /* Light on the art side, darker under the text so it stays readable.
    (glass.ts paints the same shade into the glass scene.) */
-.shade { background: linear-gradient(90deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.52)); }
+.shade { background: linear-gradient(90deg, rgba(0, 0, 0, 0.30), rgba(0, 0, 0, 0.50)); }
 
 /* ---------- liquid glass ----------
    The blurred, slightly magnified scene behind each element is painted in by
@@ -100,7 +100,7 @@ button::-moz-focus-inner { border: 0; }
   top: var(--pad-y);
   width: var(--art);
   height: var(--art);
-  border-radius: 18px;
+  border-radius: 12px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.06);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42), 0 4px 14px rgba(0, 0, 0, 0.22);
@@ -188,9 +188,9 @@ button::-moz-focus-inner { border: 0; }
 
 .title {
   font-size: var(--title-size);
-  line-height: 1.06;
+  line-height: 1.12;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.015em;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
@@ -199,11 +199,11 @@ button::-moz-focus-inner { border: 0; }
 }
 
 .artist {
-  margin-top: 12px;
-  font-size: 21px;
+  margin-top: 6px;
+  font-size: 22px;
   line-height: 1.2;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.74);
+  color: rgba(255, 255, 255, 0.6);
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -214,7 +214,7 @@ button::-moz-focus-inner { border: 0; }
   margin-top: 6px;
   font-size: 16px;
   line-height: 1.25;
-  color: rgba(251, 248, 243, 0.5);
+  color: rgba(255, 255, 255, 0.5);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -233,24 +233,23 @@ button::-moz-focus-inner { border: 0; }
 .track {
   position: relative;
   width: 100%;
-  height: 4px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.16);
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.22);
   transition: height 160ms ease;
 }
-.fill { width: 100%; height: 100%; border-radius: inherit; background: rgba(255, 255, 255, 0.92); transform-origin: 0 50%; transform: scaleX(0); will-change: transform; }
-.has-controls .track { height: 8px; border-radius: 4px; }
+.fill { width: 100%; height: 100%; border-radius: inherit; background: rgba(255, 255, 255, 0.8); transform-origin: 0 50%; transform: scaleX(0); will-change: transform; }
+.has-controls .track { height: 10px; border-radius: 5px; }
 .has-controls .fill { background: #fff; }
-.track { box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.18); }
 
 .times {
   display: flex;
   justify-content: space-between;
-  margin-top: 2px;
-  font-size: 14px;
+  margin-top: 4px;
+  font-size: 13px;
   line-height: 1;
   font-weight: 500;
-  color: rgba(251, 248, 243, 0.55);
+  color: rgba(255, 255, 255, 0.5);
   font-variant-numeric: tabular-nums;
 }
 
@@ -266,26 +265,26 @@ button::-moz-focus-inner { border: 0; }
 }
 
 .lyrics-list {
-  padding: 18px 0 60%;
+  padding: 14px 0 60%;
   transition: transform 520ms cubic-bezier(0.22, 0.8, 0.3, 1);
   will-change: transform;
 }
 
 .line {
-  font-size: 24px;
-  line-height: 1.22;
+  font-size: 27px;
+  line-height: 1.17;
   font-weight: 700;
-  letter-spacing: -0.01em;
-  color: rgba(251, 248, 243, 0.32);
-  margin-bottom: 14px;
-  transition: opacity 450ms ease;
+  letter-spacing: -0.012em;
+  color: rgba(255, 255, 255, 0.28);
+  margin-bottom: 22px;
 }
 
 /* Each word is painted with a white-to-dim gradient clipped to the text.
    Sliding the gradient fills the word left to right as it's sung. */
 .line .w {
   color: transparent;
-  background-image: linear-gradient(90deg, #fbf8f3 33.4%, rgba(251, 248, 243, 0.32) 40%);
+  /* Sung: white. Not yet sung on the current line: half white, like Apple Music. */
+  background-image: linear-gradient(90deg, #fff 33.4%, rgba(255, 255, 255, 0.5) 40%);
   background-size: 300% 100%;
   background-repeat: no-repeat;
   background-position: 100% 0;
@@ -293,32 +292,38 @@ button::-moz-focus-inner { border: 0; }
   background-clip: text;
   -webkit-box-decoration-break: clone;
 }
-.line.next .w { background-position: 100% 0 !important; }
-.line.past .w { background-position: 0 0 !important; }
-.line.past { opacity: 0.42; }
-.line.gap { font-size: 18px; }
+/* Every other line is a flat dim white. */
+.line.next .w, .line.past .w {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.28)) !important;
+  background-position: 0 0 !important;
+}
+/* Lines soften the further they are from the one being sung. */
+.line.d2 { -webkit-filter: blur(0.8px); filter: blur(0.8px); }
+.line.d3 { -webkit-filter: blur(1.6px); filter: blur(1.6px); }
+.line.d4 { -webkit-filter: blur(2.4px); filter: blur(2.4px); }
+.line.gap { font-size: 22px; }
 .line.far { visibility: hidden; } /* off-screen: keeps its space, costs no paint */
 
-.is-plain .line { font-weight: 500; font-size: 21px; color: rgba(251, 248, 243, 0.75); margin-bottom: 6px; }
+.is-plain .line { font-size: 24px; color: rgba(255, 255, 255, 0.75); margin-bottom: 8px; }
 
 .lyrics-status {
   position: absolute;
   left: 0; right: 0; top: 36%;
   font-size: 20px;
-  font-weight: 500;
-  color: rgba(251, 248, 243, 0.5);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .mini { padding-top: 10px; }
 .mini-title, .mini-artist { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mini-title { font-size: 17px; font-weight: 700; line-height: 1.2; }
-.mini-artist { font-size: 15px; font-weight: 500; line-height: 1.25; color: rgba(255, 255, 255, 0.7); }
+.mini-artist { font-size: 15px; font-weight: 500; line-height: 1.25; color: rgba(255, 255, 255, 0.6); }
 
 /* ---------- empty states ---------- */
 
 .empty { position: absolute; left: 0; right: 0; bottom: 0; }
 .empty-title { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
-.empty-body { margin-top: 12px; font-size: 18px; line-height: 1.4; color: rgba(251, 248, 243, 0.6); }
+.empty-body { margin-top: 12px; font-size: 18px; line-height: 1.4; color: rgba(255, 255, 255, 0.6); }
 
 /* ---------- volume ---------- */
 

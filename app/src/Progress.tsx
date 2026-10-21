@@ -34,7 +34,7 @@ export const Progress = memo(forwardRef<HTMLDivElement, Props>(function Progress
         lastScale = rounded
         fill.current.style.transform = `scaleX(${rounded})`
       }
-      const a = fmt(pos), b = '-' + fmt(Math.max(0, duration - pos))
+      const a = fmt(pos), b = '\u2212' + fmt(Math.max(0, duration - pos))
       if (a !== lastA && elapsed.current) { lastA = a; elapsed.current.textContent = a }
       if (b !== lastB && remaining.current) { lastB = b; remaining.current.textContent = b }
     }
@@ -55,7 +55,7 @@ export const Progress = memo(forwardRef<HTMLDivElement, Props>(function Progress
       </div>
       <div className="times">
         <span ref={elapsed}>0:00</span>
-        <span ref={remaining}>-0:00</span>
+        <span ref={remaining}>{'\u2212'}0:00</span>
       </div>
     </div>
   )

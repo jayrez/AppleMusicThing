@@ -11,7 +11,7 @@ export type Scenes = { backdrop: string; scene: string; w: number; h: number }
 type Layout = { w: number; h: number; padX: number; padY: number; art: number }
 
 const SCALE = 4 // render at 1/4 size; it's blurred anyway
-export const ART_RADIUS = 18
+export const ART_RADIUS = 12
 
 const roundRect = (g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) => {
   g.beginPath()
@@ -26,8 +26,8 @@ const roundRect = (g: CanvasRenderingContext2D, x: number, y: number, w: number,
 /** Darkening laid over the backdrop: light on the art side, darker under the text. */
 const shade = (g: CanvasRenderingContext2D, W: number, H: number) => {
   const grad = g.createLinearGradient(0, 0, W, 0)
-  grad.addColorStop(0, 'rgba(0,0,0,0.22)')
-  grad.addColorStop(1, 'rgba(0,0,0,0.52)')
+  grad.addColorStop(0, 'rgba(0,0,0,0.30)')
+  grad.addColorStop(1, 'rgba(0,0,0,0.50)')
   g.fillStyle = grad
   g.fillRect(0, 0, W, H)
 }
@@ -41,7 +41,8 @@ export const renderScenes = (img: HTMLImageElement, L: Layout): Scenes | null =>
     back.width = W; back.height = H
     const b = back.getContext('2d')!
     const cover = Math.max(W, H) * 1.35
-    b.filter = 'blur(7px) saturate(150%)'
+    // Apple keeps it muted and dark: a soft wash of the art's colors, not the art itself.
+    b.filter = 'blur(8px) saturate(115%) brightness(62%)'
     b.drawImage(img, (W - cover) / 2, (H - cover) / 2, cover, cover)
     b.filter = 'none'
 
@@ -60,7 +61,7 @@ export const renderScenes = (img: HTMLImageElement, L: Layout): Scenes | null =>
     const scene = document.createElement('canvas')
     scene.width = W; scene.height = H
     const s = scene.getContext('2d')!
-    s.filter = 'blur(2.5px) saturate(130%)'
+    s.filter = 'blur(2.5px) saturate(115%)'
     s.drawImage(comp, 0, 0)
 
     return {
