@@ -9,6 +9,8 @@ Two pieces:
 
 **Lyrics** come from Apple Music itself when available (fetched by the extension, the same way Apple's lyrics button does). Many newer songs have word-by-word timing there, so the fill matches Apple Music exactly; older songs have line timing. When Apple has no lyrics, the app falls back to [LRCLIB](https://lrclib.net) and estimates word timing from syllables. The next song's lyrics and album art are loaded while the current one plays, so they appear the moment it starts.
 
+**Look**: the album art fills the screen as a blurred backdrop, and the tap controls, volume and pause indicator use a Liquid Glass–style material. The Car Thing's browser has no live background blur, so the app renders the blurred scene once per song and shows it through each glass element.
+
 ## Install
 
 ### 1. The browser extension
@@ -17,7 +19,7 @@ Two pieces:
 3. Reload any open music.apple.com tab.
 
 ### 2. The DeskThing app
-1. Get `applemusic-v1.5.0.zip` from the Releases page (or build it, see below). In DeskThing, open **Apps**, choose to add/upload an app from a file, and pick that zip.
+1. Get `applemusic-v1.6.0.zip` from the Releases page (or build it, see below). In DeskThing, open **Apps**, choose to add/upload an app from a file, and pick that zip.
 2. Open the app on the Car Thing.
 3. Click the extension's toolbar icon (in Chrome, pin it from the puzzle-piece menu first). It should say **Connected** and show the current song.
 
@@ -71,7 +73,7 @@ The app also registers mappable actions (**Apple Music: Play / Pause, Next, Prev
 ```
 cd app
 npm install
-npm run build        # → app/dist/applemusic-v1.5.0.zip
+npm run build        # → app/dist/applemusic-v1.6.0.zip
 npx vite             # preview the screen in a browser with demo data
 ```
 
@@ -82,7 +84,7 @@ Preview URLs: `?view=lyrics`, `?controls=1`, `?track=2` (long title), `?state=em
 ```
 app/
   server/      runs inside DeskThing on the computer: extension bridge, lyrics, actions, settings
-  src/         the Car Thing screen (React)
+  src/         the Car Thing screen (React); glass.ts renders the backdrop and glass
   shared/      message and type definitions used by both
   deskthing/   app manifest and action icons
 extension/     the browser extension for Edge or Chrome (Manifest V3, no build step)

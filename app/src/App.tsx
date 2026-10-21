@@ -3,6 +3,7 @@ import type { Command } from '@shared/types'
 import { link, isMock } from './link'
 import { useArtwork, useLayout, useNowPlaying, usePreloadArt, usePrefs } from './hooks'
 import { Progress } from './Progress'
+import { useGlass, useScenes } from './glass'
 import { Lyrics } from './Lyrics'
 import { IconNext, IconNote, IconPause, IconPlay, IconPrev } from './icons'
 
@@ -21,6 +22,18 @@ const App: React.FC = () => {
   const { track } = np
   const art = useArtwork(track.hasTrack ? track.artwork : undefined)
   usePreloadArt(track.next?.artwork)
+  const scenes = useScenes(art.src, layout)
+
+  // Backdrop crossfade: keep the previous song's blur underneath while the new one fades in.
+  const [backdrops, setBackdrops] = useState<{ url: string; key: number }[]>([])
+  useEffect(() => {
+    const url = scenes?.backdrop
+    setBackdrops((cur) => (url ? [...cur.slice(-1), { url, key: Date.now() }] : []))
+  }, [scenes?.backdrop])
+
+  const capsuleRef = useRef<HTMLDivElement>(null)
+  const badgeRef = useRef<HTMLDivElement>(null)
+  const volumeRef = useRef<HTMLDivElement>(null)
 
   const [controls, setControls] = useState(isMock && params.get('controls') === '1')
   const [scrubMs, setScrubMs] = useState<number | null>(null)
@@ -218,6 +231,11 @@ const App: React.FC = () => {
   }
 
   // ---------- render ----------
+  const showBadge = np.connected !== false && track.hasTrack && !isPlaying && !controls
+  useGlass(capsuleRef, scenes, [layout, track.hasTrack])
+  useGlass(badgeRef, scenes, [layout, showBadge])
+  useGlass(volumeRef, scenes, [layout])
+
   const { art: size, padX, padY, gap, w } = layout
   const colLeft = padX + size + gap
   const colWidth = w - colLeft - padX
@@ -227,7 +245,6 @@ const App: React.FC = () => {
 
   const style = {
     '--base': art.palette.base,
-    '--glow': art.palette.glow,
     '--accent': art.palette.accent,
     '--art': `${size}px`,
     '--pad-x': `${padX}px`,
@@ -248,20 +265,25 @@ const App: React.FC = () => {
       onMouseMove={onMove}
       onMouseUp={onEnd}
     >
-      <div className="glow" />
+      <div className="backdrop" aria-hidden="true">
+        {backdrops.map((b) => <img key={b.key} src={b.url} alt="" />)}
+      </div>
+      <div className="shade" aria-hidden="true" />
 
       <div className="art">
         {art.src && ready ? <img src={art.src} alt="" draggable={false} /> : <div className="art-empty"><IconNote /></div>}
         {ready && (
           <div className="controls" aria-hidden={!controls}>
-            <button data-ctl {...noFocus} onClick={() => { send('prev'); pokeControls() }} aria-label="Previous"><IconPrev /></button>
-            <button data-ctl {...noFocus} className="play" onClick={() => { playPause(); pokeControls() }} aria-label={isPlaying ? 'Pause' : 'Play'}>
-              {isPlaying ? <IconPause /> : <IconPlay />}
-            </button>
-            <button data-ctl {...noFocus} onClick={() => { send('next'); pokeControls() }} aria-label="Next"><IconNext /></button>
+            <div className="capsule glass" ref={capsuleRef}>
+              <button data-ctl {...noFocus} onClick={() => { send('prev'); pokeControls() }} aria-label="Previous"><IconPrev /></button>
+              <button data-ctl {...noFocus} className="play" onClick={() => { playPause(); pokeControls() }} aria-label={isPlaying ? 'Pause' : 'Play'}>
+                {isPlaying ? <IconPause /> : <IconPlay />}
+              </button>
+              <button data-ctl {...noFocus} onClick={() => { send('next'); pokeControls() }} aria-label="Next"><IconNext /></button>
+            </div>
           </div>
         )}
-        {ready && !isPlaying && !controls && <div className="paused-badge"><IconPause /></div>}
+        {showBadge && <div className="paused-badge glass" ref={badgeRef}><IconPause /></div>}
       </div>
 
       <div className="column">
@@ -300,7 +322,7 @@ const App: React.FC = () => {
         )}
       </div>
 
-      <div className={`volume${volToast != null ? ' show' : ''}`}>
+      <div className={`volume glass${volToast != null ? ' show' : ''}`} ref={volumeRef}>
         <div className="volume-track"><div className="volume-fill" style={{ height: `${(volToast ?? 0) * 100}%` }} /></div>
         <span>{Math.round((volToast ?? 0) * 100)}</span>
       </div>
