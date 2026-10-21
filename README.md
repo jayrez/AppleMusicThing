@@ -48,7 +48,7 @@ music.apple.com tab ──▶ browser extension ──▶ DeskThing app (on your
 3. Reload any open music.apple.com tab.
 
 ### 2. The DeskThing app
-1. Get `applemusic-v1.7.0.zip` from the Releases page (or build it, see below). In DeskThing, open **Apps**, choose to add an app from a file, and pick that zip.
+1. Get `applemusic-v1.7.1.zip` from the Releases page (or build it, see below). In DeskThing, open **Apps**, choose to add an app from a file, and pick that zip.
 2. Open the app on the Car Thing.
 3. Click the extension's toolbar icon (in Chrome, pin it from the puzzle-piece menu first). It should say **Connected** and show the current song.
 
@@ -105,7 +105,7 @@ The app also registers mappable actions (**Apple Music: Play / Pause, Next, Prev
 ```
 cd app
 npm install
-npm run build        # → app/dist/applemusic-v1.7.0.zip
+npm run build        # → app/dist/applemusic-v1.7.1.zip
 npx vite             # preview the screen in a browser with demo data
 ```
 

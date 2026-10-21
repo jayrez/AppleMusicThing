@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+  <!-- Apple Music for DeskThing: beamed eighth notes, single color so DeskThing can tint it to the theme -->
+  <ellipse cx="6.16" cy="19.32" rx="3.36" ry="2.68"/>
+  <ellipse cx="17.57" cy="17.3" rx="3.36" ry="2.68"/>
+  <rect x="8.04" y="4.01" width="1.74" height="15.44" rx="0.4"/>
+  <rect x="19.45" y="2.0" width="1.74" height="15.44" rx="0.4"/>
+  <polygon points="8.04,4.01 21.19,2.0 21.19,6.03 8.04,8.04"/>
+</svg>
