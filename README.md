@@ -155,6 +155,10 @@ docs/          screenshots and HOW-IT-WORKS.md
 store/         browser store listing text, images, and package.sh for the upload zip
 ```
 
+## Contributing
+
+Bug reports, lyric-timing reports from real songs, and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and the Car Thing–specific rules, and the [Code of Conduct](CODE_OF_CONDUCT.md). Report security problems privately as described in [SECURITY.md](SECURITY.md).
+
 ## How this was built
 
 This project was built with AI assistance. The code, documentation, store listing and images were written by Claude (Anthropic's AI assistant) in conversation with me. It worked in a cloud workspace and committed straight to this repo, which is why commits carry a `Co-Authored-By: Claude` line. I set the direction and design, tested every version on my own Car Thing on Windows 11 and macOS, reported what was off (lyric timing, stutters, outlines, how close it looked to Apple Music), and decided what shipped. The screenshots and release tags came from my own machine.

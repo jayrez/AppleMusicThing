@@ -1,0 +1,69 @@
+name: Lyrics problem
+description: Lyrics are early, late, for the wrong song, missing, or the word fill is off.
+labels: ["lyrics"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Real songs are the only way to tune lyric timing, so these reports really help. Please name the song so it can be tested. Don't paste the lyrics themselves.
+  - type: input
+    id: song
+    attributes:
+      label: Song and artist
+      placeholder: Night Drive Home, The Low Signals
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: Apple Music link to the song
+      description: In Apple Music, use Share → Copy Link.
+      placeholder: https://music.apple.com/us/album/...
+  - type: dropdown
+    id: problem
+    attributes:
+      label: What's wrong?
+      multiple: true
+      options:
+        - Lines change too early
+        - Lines change too late
+        - Timing drifts during the song
+        - Word fill is ahead of or behind the singing (lines are fine)
+        - Lyrics are for a different song or version
+        - '"No lyrics found", but Apple Music shows lyrics for this song'
+        - '"Couldn''t reach the lyrics service"'
+        - Lyrics don't scroll, or scroll wrongly
+    validations:
+      required: true
+  - type: dropdown
+    id: apple
+    attributes:
+      label: How does Apple Music show this song's lyrics?
+      description: Check in Apple Music's own lyrics view.
+      options:
+        - Word by word (fills as it's sung)
+        - Line by line
+        - No lyrics in Apple Music
+        - Not sure
+  - type: input
+    id: when
+    attributes:
+      label: Where in the song?
+      description: A timestamp helps, and roughly how far off it is.
+      placeholder: Around 1:20, lines change about half a second late
+  - type: input
+    id: versions
+    attributes:
+      label: App and extension versions
+      placeholder: app 1.7.2, extension 1.4.0
+    validations:
+      required: true
+  - type: dropdown
+    id: audio
+    attributes:
+      label: How are you listening?
+      description: Bluetooth audio adds delay that can make lyrics look early.
+      options:
+        - Bluetooth headphones or speaker
+        - Wired, USB or built-in speakers
+        - Not sure

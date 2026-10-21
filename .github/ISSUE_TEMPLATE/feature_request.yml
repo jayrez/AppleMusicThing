@@ -1,0 +1,35 @@
+name: Feature request
+description: An idea for the Car Thing screen, controls, or the extension.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like it to do?
+      description: Describe what you're trying to do, not only the solution. That leaves room for other ways to get there.
+      placeholder: I'd like to see what's coming up next without leaving the now playing screen.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How might it work?
+      description: Which button, gesture or screen? Sketches and mockups are welcome.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Car Thing screen and design
+        - Controls (dial, buttons, touch)
+        - Lyrics
+        - Browser extension
+        - Setup and settings
+        - Something else
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and this isn't a duplicate
+          required: true

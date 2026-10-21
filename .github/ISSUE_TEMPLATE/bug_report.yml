@@ -1,0 +1,108 @@
+name: Bug report
+description: Something isn't working on the Car Thing, in DeskThing, or in the extension.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Before you start, check the [Troubleshooting](https://github.com/jayrez/AppleMusicThing#troubleshooting) section of the README. Many problems (wrong port, cached app, company proxy) are covered there.
+
+        For lyrics that are wrong, early or late, use the **Lyrics problem** form instead.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you saw, and what you expected instead.
+      placeholder: Pressing the dial doesn't pause. The song keeps playing and the Car Thing shows the pause icon.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Play a song at music.apple.com
+        2. Open the Apple Music app on the Car Thing
+        3. Press the dial
+    validations:
+      required: true
+  - type: dropdown
+    id: popup
+    attributes:
+      label: What does the extension popup say?
+      description: Click the Now Playing Bridge icon in your browser's toolbar.
+      options:
+        - Connected, and shows the current song
+        - Connected, but no song
+        - Connecting…
+        - Not reachable
+        - Idle
+        - I can't find the extension
+    validations:
+      required: true
+  - type: input
+    id: app_version
+    attributes:
+      label: Apple Music app version
+      description: In DeskThing → Apps, or the zip name (applemusic-vX.Y.Z.zip).
+      placeholder: 1.7.2
+    validations:
+      required: true
+  - type: input
+    id: ext_version
+    attributes:
+      label: Extension version
+      description: Shown on the extension's card in chrome://extensions or edge://extensions.
+      placeholder: 1.4.0
+    validations:
+      required: true
+  - type: input
+    id: deskthing_version
+    attributes:
+      label: DeskThing version
+      placeholder: 0.11.17
+  - type: dropdown
+    id: os
+    attributes:
+      label: Computer
+      options:
+        - Windows 11
+        - Windows 10
+        - macOS
+        - Linux
+    validations:
+      required: true
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      options:
+        - Microsoft Edge
+        - Google Chrome
+        - Other Chromium browser
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where does it happen?
+      multiple: true
+      options:
+        - On the Car Thing
+        - In DeskThing's client page in a browser
+        - In the extension popup
+        - In DeskThing on the computer
+  - type: checkboxes
+    id: tried
+    attributes:
+      label: Already tried
+      options:
+        - label: Fully closed and reopened the app on the Car Thing
+        - label: Reloaded the music.apple.com tab
+        - label: Checked that the extension's port matches the app's Bridge port setting
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: DeskThing's log lines starting with `[applemusic]` are especially useful. Please remove anything personal before posting.
+      render: text
