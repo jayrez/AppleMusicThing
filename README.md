@@ -15,6 +15,9 @@ Apple Music on the Spotify Car Thing. A [DeskThing](https://github.com/ItsRiprod
   </tr>
 </table>
 
+> [!NOTE]
+> **Store versions of the browser extension are on the way.** Now Playing Bridge for DeskThing is being submitted to the Chrome Web Store and Microsoft Edge Add-ons. Until it's approved, install it manually from the [latest release](https://github.com/jayrez/AppleMusicThing/releases/latest) as described in [Install](#install). It only takes a minute.
+
 ## Why this exists
 
 I found my Spotify Car Thing in a bin in the garage. I remembered reading about DeskThing, so I flashed it and got it running. But I'm an Apple Music subscriber, and the local media player that comes with DeskThing didn't look the way I wanted. I wanted something that felt like an official Apple Music device sitting on my desk: big album art, lyrics that fill in as they're sung, and controls that just work.
@@ -51,6 +54,10 @@ For the full technical tour (how the player is read, where lyrics and art come f
 ## Install
 
 ### 1. The browser extension
+
+> [!TIP]
+> One-click installs from the Chrome Web Store and Edge Add-ons are coming soon. For now, load it unpacked:
+
 1. Download this repo (or the release's `now-playing-bridge-v1.4.0.zip`) and keep the `extension` folder (or the unzipped files) somewhere permanent; the browser loads it from that folder.
 2. Open the extensions page (`edge://extensions` in Edge, `chrome://extensions` in Chrome), turn on **Developer mode**, click **Load unpacked**, and pick the `extension` folder.
 3. Reload any open music.apple.com tab.
