@@ -15,6 +15,12 @@ Apple Music on the Spotify Car Thing. A [DeskThing](https://github.com/ItsRiprod
   </tr>
 </table>
 
+## Why this exists
+
+I found my Spotify Car Thing in a bin in the garage. I remembered reading about DeskThing, so I flashed it and got it running. But I'm an Apple Music subscriber, and the local media player that comes with DeskThing didn't look the way I wanted. I wanted something that felt like an official Apple Music device sitting on my desk: big album art, lyrics that fill in as they're sung, and controls that just work.
+
+This is the result. I use it every day. Next up is a 3D-printed mount to put it under my monitor or my desk, whichever wins.
+
 ## What it does
 
 - Shows the current song from Apple Music in Edge or Chrome: art, title, artist and progress, styled after Apple Music's own now playing screen.
@@ -141,6 +147,12 @@ extension/     the browser extension for Edge or Chrome (Manifest V3, no build s
 docs/          screenshots and HOW-IT-WORKS.md
 store/         browser store listing text, images, and package.sh for the upload zip
 ```
+
+## How this was built
+
+This project was built with AI assistance. The code, documentation, store listing and images were written by Claude (Anthropic's AI assistant) in conversation with me. It worked in a cloud workspace and committed straight to this repo, which is why commits carry a `Co-Authored-By: Claude` line. I set the direction and design, tested every version on my own Car Thing on Windows 11 and macOS, reported what was off (lyric timing, stutters, outlines, how close it looked to Apple Music), and decided what shipped. The screenshots and release tags came from my own machine.
+
+If you find a bug, it's real code running on real hardware, so please [open an issue](https://github.com/jayrez/AppleMusicThing/issues).
 
 ## Credits
 
