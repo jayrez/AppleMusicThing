@@ -157,6 +157,14 @@ store/         browser store listing text, images, and package.sh for the upload
 
 ## Contributing
 
+Have an idea or found a problem? Open an issue with the matching form:
+
+- [Request a feature](https://github.com/jayrez/AppleMusicThing/issues/new?template=feature_request.yml): new controls, screens, or extension options
+- [Report a bug](https://github.com/jayrez/AppleMusicThing/issues/new?template=bug_report.yml): something isn't working
+- [Report a lyrics problem](https://github.com/jayrez/AppleMusicThing/issues/new?template=lyrics.yml): lyrics that are early, late, wrong or missing
+
+Please [search existing issues](https://github.com/jayrez/AppleMusicThing/issues) first, and add a 👍 to a request you want rather than opening a duplicate.
+
 Bug reports, lyric-timing reports from real songs, and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and the Car Thing–specific rules, and the [Code of Conduct](CODE_OF_CONDUCT.md). Report security problems privately as described in [SECURITY.md](SECURITY.md).
 
 ## How this was built
